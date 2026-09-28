@@ -1,3 +1,43 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fitness Tracker PWA</title>
+    
+    <!-- Meta tag WebApp / PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="data:application/manifest+json;utf8,{
+        %22name%22:%22Fitness%20Tracker%22,
+        %22short_name%22:%22FitnessPWA%22,
+        %22start_url%22:%22./%22,
+        %22display%22:%22standalone%22,
+        %22background_color%22:%22%230f172a%22,
+        %22theme_color%22:%22%230f172a%22
+    }">
+
+    <!-- CDN Tailwind CSS, SheetJS e Phosphor Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .page-section {
+            display: none;
+        }
+        .page-section.active {
+            display: block;
+        }
+    </style>
+</head>
 <body class="p-4 max-w-xl mx-auto pb-12 relative min-h-screen">
 
     <!-- BARRA DI NAVIGAZIONE SUPERIORE -->
@@ -28,22 +68,25 @@
             </div>
             <nav class="space-y-2">
                 <button onclick="navigateTo('home')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
-                    <i class="ph ph-house text-emerald-400 text-lg"></i> Homepage Lean
+                    <i class="ph ph-house text-emerald-400 text-lg"></i> Homepage
                 </button>
                 <button onclick="navigateTo('profilo')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
                     <i class="ph ph-user text-emerald-400 text-lg"></i> Il Mio Profilo
                 </button>
-                <button onclick="navigateTo('obiettivi')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
-                    <i class="ph ph-target text-emerald-400 text-lg"></i> Obiettivi & KPI
+                <button onclick="navigateTo('registra')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
+                    <i class="ph ph-plus-circle text-emerald-400 text-lg"></i> Nuova Registrazione
                 </button>
                 <button onclick="navigateTo('repository')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
                     <i class="ph ph-folders text-emerald-400 text-lg"></i> Repository Schede
                 </button>
                 <button onclick="navigateTo('storico')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
-                    <i class="ph ph-clock-counter-clockwise text-emerald-400 text-lg"></i> Storico Sessioni
+                    <i class="ph ph-clock-counter-clockwise text-emerald-400 text-lg"></i> Storico Allenamenti
+                </button>
+                <button onclick="navigateTo('obiettivi')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
+                    <i class="ph ph-target text-emerald-400 text-lg"></i> Obiettivi
                 </button>
                 <button onclick="navigateTo('pesate')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
-                    <i class="ph ph-scales text-emerald-400 text-lg"></i> Pesate e Misure
+                    <i class="ph ph-scales text-emerald-400 text-lg"></i> Pesate e Misurazioni
                 </button>
             </nav>
         </div>
@@ -52,70 +95,39 @@
         </div>
     </aside>
 
-    <!-- SEZIONE 1: HOMEPAGE (LEAN & DIRECT) -->
-    <section id="sec-home" class="page-section active space-y-3">
-        
-        <!-- DASHBOARD LIVELLO & PROSSIMO OBIETTIVO -->
-        <div class="grid grid-cols-2 gap-2">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 shadow-md flex flex-col justify-between">
-                <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Livello Attuale</span>
-                <div class="my-1">
-                    <p class="text-xl font-black text-emerald-400" id="leanLevelTitle">Atleta B2</p>
-                    <p class="text-[10px] text-slate-300" id="leanScoreDisplay">Score: --/100</p>
+    <!-- SEZIONE 1: HOMEPAGE -->
+    <section id="sec-home" class="page-section active space-y-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
+            <h2 class="text-xs font-semibold text-emerald-400 mb-3">Riepilogo Allenamenti</h2>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 text-center">
+                    <p class="text-[11px] text-slate-400 mb-0.5">Giorni Inattività</p>
+                    <p class="text-2xl font-black text-emerald-400" id="daysSinceLastWorkout">-</p>
                 </div>
-                <span class="text-[9px] text-slate-500" id="leanWeightTrend">Peso: -- kg</span>
-            </div>
-
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 shadow-md flex flex-col justify-between">
-                <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Prossimo Target</span>
-                <div class="my-1">
-                    <p class="text-base font-bold text-white" id="leanNextTarget">12 Allenamenti</p>
-                    <p class="text-[10px] text-emerald-400" id="leanTargetProgress">Mancano 4 sessioni</p>
-                </div>
-                <div class="w-full bg-slate-900 rounded-full h-1.5 border border-slate-700">
-                    <div id="leanProgressBar" class="bg-emerald-400 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 text-center">
+                    <p class="text-[11px] text-slate-400 mb-0.5">Sessioni Totali</p>
+                    <p class="text-2xl font-black text-blue-400" id="totalWorkoutsCount">0</p>
                 </div>
             </div>
         </div>
 
-        <!-- QUICK ACTION: REGISTRAZIONE RAPIDA SESSIONE -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-3.5 shadow-lg space-y-2.5">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                    <i class="ph ph-lightning text-sm"></i> Registra Allenamento Rapido
-                </h2>
-                <span class="text-[10px] text-slate-400" id="leanDaysInactive">Inattività: - g</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="block text-[10px] text-slate-400 mb-0.5">Data</label>
-                    <input type="date" id="quickLogDate" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] text-slate-400 mb-0.5">Scheda Utilizzata</label>
-                    <select id="quickLogSchedaSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
-                        <option value="">Seleziona...</option>
-                    </select>
-                </div>
-            </div>
-
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg flex justify-between items-center">
             <div>
-                <label class="block text-[10px] text-slate-400 mb-0.5">Dettagli / Note Rapide</label>
-                <input type="text" id="quickLogDetails" placeholder="Es. Giorno A - Focus Panca 4x8 @80kg" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <p class="text-xs text-slate-400">Ultimo Peso (Xiaomi Scale)</p>
+                <p class="text-xl font-bold text-white" id="homeWeightDisplay">- kg</p>
             </div>
-
-            <button onclick="addQuickWorkoutLog()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow">
-                <i class="ph ph-check-circle text-base"></i> Salva Sessione
+            <button onclick="navigateTo('pesate')" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg">
+                Vedi Dati
             </button>
         </div>
 
-        <!-- INSIGHT STRATEGICO RAPIDO -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-2.5 text-[11px] flex items-center justify-between">
-            <span class="text-slate-400 flex items-center gap-1.5">
-                <i class="ph ph-info text-emerald-400 text-sm"></i> Stato Scheda:
-            </span>
-            <span class="font-bold text-slate-200" id="leanSchedaSatStatus">In corso (0 cicli)</span>
+        <div class="space-y-2">
+            <button onclick="navigateTo('registra')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 shadow-lg">
+                <i class="ph ph-plus-circle text-lg"></i> Nuova Registrazione Allenamento
+            </button>
+            <button onclick="navigateTo('repository')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2.5 rounded-xl text-xs border border-slate-700 transition-colors flex items-center justify-center gap-2">
+                <i class="ph ph-folders text-base"></i> Gestisci Repository Schede
+            </button>
         </div>
     </section>
 
@@ -155,7 +167,37 @@
         </div>
     </section>
 
-    <!-- SEZIONE 3: REPOSITORY SCHEDE -->
+    <!-- SEZIONE 3: REGISTRAZIONE ALLENAMENTO -->
+    <section id="sec-registra" class="page-section">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
+            <h2 class="text-base font-semibold text-emerald-400 mb-3 flex items-center gap-2">
+                <i class="ph ph-plus-circle text-lg"></i> Registra Allenamento
+            </h2>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Data</label>
+                        <input type="date" id="logDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Versione Scheda</label>
+                        <select id="logSchedaSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option value="">Seleziona...</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Dettagli / Note Sessione</label>
+                    <input type="text" id="logDetails" placeholder="Es. Giorno A - Panca 4x8 @80kg" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <button onclick="addWorkoutLog()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
+                    <i class="ph ph-check-circle text-lg"></i> Salva Allenamento
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEZIONE 4: REPOSITORY SCHEDE -->
     <section id="sec-repository" class="page-section">
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <div class="flex justify-between items-center">
@@ -182,7 +224,7 @@
         </div>
     </section>
 
-    <!-- SEZIONE 4: STORICO REGISTRAZIONI -->
+    <!-- SEZIONE 5: STORICO REGISTRAZIONI -->
     <section id="sec-storico" class="page-section">
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <div class="flex justify-between items-center">
@@ -197,7 +239,7 @@
         </div>
     </section>
 
-    <!-- SEZIONE 6: OBIETTIVI, SCHEDA SATURAZIONE E TIMING -->
+    <!-- SEZIONE 6: OBIETTIVI -->
     <section id="sec-obiettivi" class="page-section space-y-4">
         
         <!-- TARGET & FREQUENZA ALLENAMENTI -->
@@ -226,53 +268,17 @@
             </div>
         </div>
 
-        <!-- INDICATORI AVANZAMENTO SCHEDA & STIMOLO AL CAMBIO -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
-            <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
-                <i class="ph ph-arrows-clockwise text-lg"></i> Indicatori Saturazione Scheda
-            </h2>
-            <div id="schedaSaturationBox" class="bg-slate-900/60 border border-slate-700/50 rounded-lg p-3 text-xs space-y-2">
-                <p class="text-slate-400 italic text-center">In attesa di storico registrazioni per calcolare lo stimolo.</p>
-            </div>
-        </div>
-
-        <!-- TIMING OTTIMALE PROSSIMA PESATA & MISURAZIONE -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
-            <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
-                <i class="ph ph-calendar-check text-lg"></i> Timing Prossimo Aggiornamento
-            </h2>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-                <div class="bg-slate-900/60 border border-slate-700/50 p-2.5 rounded-lg space-y-1">
-                    <span class="text-[10px] text-slate-400 block">Prossima Pesata</span>
-                    <p class="font-bold text-emerald-400" id="nextWeightDateSuggest">--/--/----</p>
-                    <p class="text-[9px] text-slate-500" id="nextWeightReason">Frequenza: ogni 7 giorni</p>
-                </div>
-                <div class="bg-slate-900/60 border border-slate-700/50 p-2.5 rounded-lg space-y-1">
-                    <span class="text-[10px] text-slate-400 block">Prossima Misurazione</span>
-                    <p class="font-bold text-blue-400" id="nextMeasureDateSuggest">--/--/----</p>
-                    <p class="text-[9px] text-slate-500" id="nextMeasureReason">Frequenza: ogni 14-21 giorni</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- STATO ATTUALE VS OBIETTIVI RAGGIUNGIBILI CON ALLENAMENTO -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
-            <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
-                <i class="ph ph-trend-up text-lg"></i> Stato Attuale vs Proiezione Allenamento
-            </h2>
-            <div id="workoutProjectionBox" class="bg-slate-900/60 border border-slate-700/50 rounded-lg p-3 text-xs space-y-2">
-                <p class="text-slate-400 italic text-center">Carica dati pesata e misurazioni per la proiezione obiettivi.</p>
-            </div>
-        </div>
-
-        <!-- MOTORINO DI CALCOLO PUNTEGGIO INTEGRATO E DIAGNOSI -->
+        <!-- MOTORINO DI CALCOLO PUNTEGGIO INTEGRATO E DIAGNOSI STATO ATTUALE -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
                 <i class="ph ph-calculator text-lg"></i> Motorino Calcolo Punteggio Integrato
             </h2>
+            
             <div id="scoreCalculatorBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-3">
                 <p class="text-slate-400 italic text-center">In attesa di dati per il calcolo avanzato.</p>
             </div>
+
+            <!-- MINI-DEFINIZIONE STRUTTURATA DELLO STATO ATTUALE -->
             <div id="statusDiagnosisBox" class="bg-slate-900/60 border border-slate-700/50 rounded-lg p-3 text-xs space-y-2">
                 <h3 class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex items-center gap-1.5">
                     <i class="ph ph-activity text-emerald-400"></i> Profilo Diagnostico Stato Attuale
@@ -315,6 +321,7 @@
                 </button>
             </div>
 
+            <!-- Elenco Storico Pesate -->
             <div class="space-y-2 pt-2 border-t border-slate-700/60">
                 <label class="block text-xs text-slate-400 font-medium">Storico Pesate Salvate</label>
                 <div id="scaleHistoryList" class="space-y-1.5 max-h-40 overflow-y-auto pr-1"></div>
@@ -348,18 +355,20 @@
                 </button>
             </div>
 
+            <!-- Elenco Storico Misurazioni -->
             <div class="space-y-2 pt-2 border-t border-slate-700/60">
                 <label class="block text-xs text-slate-400 font-medium">Storico Misurazioni Salvate</label>
                 <div id="measuresHistoryList" class="space-y-1.5 max-h-40 overflow-y-auto pr-1"></div>
             </div>
         </div>
 
-        <!-- VALUTAZIONI DISTINTE STATO ATTUALE -->
+        <!-- VALUTAZIONI DISTINTE STATO ATTUALE (2 BOX SEPARATI + LOGICA) -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-4">
             <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
                 <i class="ph ph-chart-bar text-lg"></i> Valutazione Distinta Stato Attuale
             </h2>
 
+            <!-- VALUTAZIONE 1: PARAMETRI DI PESO -->
             <div class="space-y-2">
                 <label class="block text-xs text-slate-400 font-semibold">Valutazione 1: Parametri Peso & Composizione Corporea</label>
                 <div id="scaleAnalysisBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-3">
@@ -367,6 +376,7 @@
                 </div>
             </div>
 
+            <!-- VALUTAZIONE 2: PARAMETRI DI CIRCONFERENZE -->
             <div class="space-y-2">
                 <label class="block text-xs text-slate-400 font-semibold">Valutazione 2: Parametri Circonferenze & Proporzioni</label>
                 <div id="measuresAnalysisBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-3">
@@ -396,20 +406,18 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0];
-            const qDate = document.getElementById('quickLogDate');
-            if (qDate) qDate.value = today;
-
-            const tInput = document.getElementById('targetWorkoutsMonth');
-            if (tInput) tInput.value = db.targetMonth;
+            document.getElementById('logDate').value = today;
+            document.getElementById('targetWorkoutsMonth').value = db.targetMonth;
 
             loadUserProfile();
             renderRepository();
             renderWorkouts();
             renderScaleAnalysis();
             renderMeasuresAnalysis();
-            updateDashboardAndAnalytics();
+            updateDashboardCounters();
         });
 
+        // GESTIONE PROFILO UTENTE
         function loadUserProfile() {
             document.getElementById('profileName').value = db.profile.name || '';
             document.getElementById('profileBirthDate').value = db.profile.birthDate || '';
@@ -428,7 +436,9 @@
             const today = new Date();
             let age = today.getFullYear() - birthDate.getFullYear();
             const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
             document.getElementById('profileAge').value = `${age} anni`;
             return age;
         }
@@ -441,11 +451,12 @@
                 notes: document.getElementById('profileNotes').value.trim()
             };
             localStorage.setItem('pwa_user_profile', JSON.stringify(db.profile));
-            alert("Profilo salvato correttamente!");
+            alert("Profilo aggiornato con successo!");
             renderScaleAnalysis();
             renderMeasuresAnalysis();
         }
 
+        // NAVIGAZIONE MENU
         function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -471,41 +482,23 @@
             if (target) target.classList.add('active');
         }
 
-        function addQuickWorkoutLog() {
-            const date = document.getElementById('quickLogDate').value;
-            const scheda = document.getElementById('quickLogSchedaSelect').value || 'Generica';
-            const details = document.getElementById('quickLogDetails').value.trim();
-
-            if (!date) return alert("Seleziona una data valida.");
-
-            db.workouts.unshift({
-                id: Date.now(),
-                date,
-                scheda,
-                details: details || 'Allenamento completato'
-            });
-
-            db.workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
-            localStorage.setItem('pwa_workouts', JSON.stringify(db.workouts));
-            document.getElementById('quickLogDetails').value = '';
-
-            renderWorkouts();
-            updateDashboardAndAnalytics();
-            alert("Allenamento salvato con successo!");
-        }
-
+        // REPOSITORY SCHEDE
         function uploadSchedaToRepository() {
             const versionName = document.getElementById('schedaVersionName').value.trim();
             const fileInput = document.getElementById('excelFileInput');
             const file = fileInput.files[0];
 
-            if (!versionName || !file) return alert("Inserisci un nome versione e carica un file Excel.");
+            if (!versionName || !file) {
+                alert("Inserisci un nome per la scheda e carica un file Excel.");
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
-                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
                 db.repository[versionName] = jsonData;
                 db.activeSchedaKey = versionName;
@@ -517,23 +510,22 @@
                 fileInput.value = '';
 
                 renderRepository();
-                updateDashboardAndAnalytics();
             };
             reader.readAsArrayBuffer(file);
         }
 
         function renderRepository() {
             const listContainer = document.getElementById('repositoryList');
-            const selectQuick = document.getElementById('quickLogSchedaSelect');
+            const selectLog = document.getElementById('logSchedaSelect');
             const badge = document.getElementById('headerActiveScheda');
 
             listContainer.innerHTML = '';
-            selectQuick.innerHTML = '<option value="">Generica / Libera</option>';
+            selectLog.innerHTML = '<option value="">Nessuna / Allenamento Libero</option>';
 
             const keys = Object.keys(db.repository);
 
             if (keys.length === 0) {
-                listContainer.innerHTML = '<p class="text-xs text-slate-500 italic">Nessuna scheda caricata.</p>';
+                listContainer.innerHTML = '<p class="text-xs text-slate-500 italic">Nessuna scheda presente.</p>';
                 badge.textContent = "Scheda: Nessuna";
                 return;
             }
@@ -550,7 +542,7 @@
                 opt.value = key;
                 opt.textContent = key;
                 if (key === db.activeSchedaKey) opt.selected = true;
-                selectQuick.appendChild(opt);
+                selectLog.appendChild(opt);
 
                 const item = document.createElement('div');
                 item.className = `p-2 rounded-lg border text-xs flex justify-between items-center ${key === db.activeSchedaKey ? 'bg-slate-900 border-emerald-500/80 text-emerald-400' : 'bg-slate-900/60 border-slate-700/60 text-slate-300'}`;
@@ -577,7 +569,6 @@
             db.activeSchedaKey = key;
             localStorage.setItem('pwa_active_scheda', key);
             renderRepository();
-            updateDashboardAndAnalytics();
         }
 
         function downloadScheda(key) {
@@ -599,15 +590,41 @@
             else localStorage.removeItem('pwa_active_scheda');
 
             renderRepository();
-            updateDashboardAndAnalytics();
+        }
+
+        // WORKOUT LOGS
+        function addWorkoutLog() {
+            const date = document.getElementById('logDate').value;
+            const scheda = document.getElementById('logSchedaSelect').value || 'Generica';
+            const details = document.getElementById('logDetails').value.trim();
+
+            if (!date) {
+                alert("Seleziona una data valida.");
+                return;
+            }
+
+            db.workouts.unshift({
+                id: Date.now(),
+                date,
+                scheda,
+                details: details || 'Allenamento completato'
+            });
+
+            db.workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
+            localStorage.setItem('pwa_workouts', JSON.stringify(db.workouts));
+            document.getElementById('logDetails').value = '';
+
+            renderWorkouts();
+            updateDashboardCounters();
+            showSection('home');
         }
 
         function deleteWorkoutLog(id) {
-            if (!confirm("Eliminare la sessione selezionata?")) return;
+            if (!confirm("Vuoi rimuovere questo allenamento dal registro?")) return;
             db.workouts = db.workouts.filter(w => w.id !== id);
             localStorage.setItem('pwa_workouts', JSON.stringify(db.workouts));
             renderWorkouts();
-            updateDashboardAndAnalytics();
+            updateDashboardCounters();
         }
 
         function renderWorkouts() {
@@ -615,7 +632,7 @@
             list.innerHTML = '';
 
             if (db.workouts.length === 0) {
-                list.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Nessuna registrazione salvata.</p>';
+                list.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Nessun allenamento salvato.</p>';
                 return;
             }
 
@@ -638,20 +655,28 @@
             });
         }
 
+        // REGISTRAZIONE PESATE
         function downloadScaleTemplate() {
             const templateScaleData = [{
-                Data: "2026-09-28", Peso: 78.5, IMC: 22.1, MassaGrassa: 15.2, Muscoli: 62.4, Acqua: 58.5, GrassoViscerale: 4, MetabolismoBasale: 1750
+                Data: "2026-09-28",
+                Peso: 78.5,
+                IMC: 22.1,
+                MassaGrassa: 15.2,
+                Muscoli: 62.4,
+                Acqua: 58.5,
+                GrassoViscerale: 4,
+                MetabolismoBasale: 1750
             }];
             const worksheet = XLSX.utils.json_to_sheet(templateScaleData);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Template_Pesate");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Template_Xiaomi_Scale");
             XLSX.writeFile(workbook, "Template_Xiaomi_Mi_Scale_2.xlsx");
         }
 
         function uploadScaleData() {
             const fileInput = document.getElementById('scaleFileInput');
             const file = fileInput.files[0];
-            if (!file) return alert("Seleziona il file delle pesate!");
+            if (!file) return alert("Seleziona il file Excel delle pesate!");
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -671,30 +696,40 @@
         }
 
         function deleteScaleData(id) {
-            if (!confirm("Eliminare la singola pesata?")) return;
+            if (!confirm("Eliminare la singola pesata selezionata?")) return;
             db.scaleData = db.scaleData.filter(item => item.id !== id);
             localStorage.setItem('pwa_scaledata', JSON.stringify(db.scaleData));
             renderScaleAnalysis();
         }
 
         function clearAllScaleData() {
-            if (!confirm("Eliminare TUTTE le pesate?")) return;
+            if (!confirm("Sei sicuro di voler eliminare l'INTERO storico pesate?")) return;
             db.scaleData = [];
             localStorage.removeItem('pwa_scaledata');
             renderScaleAnalysis();
         }
 
         function exportScaleData() {
-            if (!db.scaleData.length) return alert("Nessun dato da esportare.");
+            if (!db.scaleData.length) return alert("Nessuna pesata disponibile da esportare.");
             const worksheet = XLSX.utils.json_to_sheet(db.scaleData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Pesate_Export");
-            XLSX.writeFile(workbook, `Pesate_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.writeFile(workbook, `Xiaomi_Scale_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
+        // REGISTRAZIONE MISURAZIONI
         function downloadMeasuresTemplate() {
             const templateMeasuresData = [{
-                Data: "2026-09-28", Torace: 104, BicipiteDx: 37, BicipiteSx: 36.5, PolpaccioDx: 38, PolpaccioSx: 38, QuadricipiteDx: 58, QuadricipiteSx: 57.5, Vita: 82, Spalle: 48
+                Data: "2026-09-28",
+                Torace: 104,
+                BicipiteDx: 37,
+                BicipiteSx: 36.5,
+                PolpaccioDx: 38,
+                PolpaccioSx: 38,
+                QuadricipiteDx: 58,
+                QuadricipiteSx: 57.5,
+                Vita: 82,
+                Spalle: 48
             }];
             const worksheet = XLSX.utils.json_to_sheet(templateMeasuresData);
             const workbook = XLSX.utils.book_new();
@@ -705,7 +740,7 @@
         function uploadMeasuresData() {
             const fileInput = document.getElementById('measuresFileInput');
             const file = fileInput.files[0];
-            if (!file) return alert("Seleziona il file delle misurazioni!");
+            if (!file) return alert("Seleziona il file Excel delle misurazioni!");
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -725,50 +760,55 @@
         }
 
         function deleteMeasuresData(id) {
-            if (!confirm("Eliminare la misurazione selezionata?")) return;
+            if (!confirm("Eliminare la singola misurazione selezionata?")) return;
             db.measuresData = db.measuresData.filter(item => item.id !== id);
             localStorage.setItem('pwa_measuresdata', JSON.stringify(db.measuresData));
             renderMeasuresAnalysis();
         }
 
         function clearAllMeasuresData() {
-            if (!confirm("Eliminare TUTTE le misurazioni?")) return;
+            if (!confirm("Sei sicuro di voler eliminare l'INTERO storico misurazioni?")) return;
             db.measuresData = [];
             localStorage.removeItem('pwa_measuresdata');
             renderMeasuresAnalysis();
         }
 
         function exportMeasuresData() {
-            if (!db.measuresData.length) return alert("Nessun dato da esportare.");
+            if (!db.measuresData.length) return alert("Nessuna misurazione disponibile da esportare.");
             const worksheet = XLSX.utils.json_to_sheet(db.measuresData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Misurazioni_Export");
             XLSX.writeFile(workbook, `Misurazioni_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
+        // MOTORINI DI CALCOLO VALUTAZIONI (1-100) & DIAGNOSI
         function calculateAdvancedFitnessScore(latest) {
             if (!latest) return { score: 0, imcCalc: "-", diagnosisWeight: "N/D" };
             let score = 0;
             const heightM = (db.profile.height || 191) / 100;
             const weight = parseFloat(latest.Peso || latest.peso || 0);
 
+            // 1. BMI/IMC (Max 25pt)
             let imc = parseFloat(latest.IMC || latest.imc || (heightM > 0 ? weight / (heightM * heightM) : 0));
             let statusImc = "Normopeso";
             if (imc >= 18.5 && imc <= 24.9) { score += 25; statusImc = "Normopeso Ottimale"; }
-            else if (imc >= 25.0 && imc <= 28.0) { score += 18; statusImc = "Lieve Sovrappeso/Muscoloso"; }
-            else if (imc > 0) { score += 10; statusImc = "Fuori Soglia"; }
+            else if (imc >= 25.0 && imc <= 28.0) { score += 18; statusImc = "Lieve Sovrappeso/Massa Muscolare"; }
+            else if (imc > 0) { score += 10; statusImc = "Sottopeso/Oltre Soglia"; }
 
+            // 2. Grasso Viscerale (Max 25pt)
             const visceral = parseFloat(latest.GrassoViscerale || latest.grasso_viscerale || 0);
             if (visceral > 0 && visceral <= 9) score += 25;
             else if (visceral >= 10 && visceral <= 14) score += 15;
             else score += 10;
 
+            // 3. Massa Grassa % (Max 25pt)
             const fatPct = parseFloat(latest.MassaGrassa || latest.massa_grassa || 0);
             let statusFat = "Magro/Definito";
             if (fatPct >= 11 && fatPct <= 18) score += 25;
             else if (fatPct > 18 && fatPct <= 23) { score += 18; statusFat = "Adiposità Media"; }
             else { score += 10; statusFat = "Adiposità Elevata"; }
 
+            // 4. Acqua % (Max 25pt)
             const waterPct = parseFloat(latest.Acqua || latest.acqua || 0);
             if (waterPct >= 55 && waterPct <= 65) score += 25;
             else if (waterPct >= 50 && waterPct < 55) score += 18;
@@ -786,23 +826,26 @@
             let score = 0;
             const heightCm = db.profile.height || 191;
 
+            // 1. Rapporto Vita/Altezza (WHtR - Max 35pt)
             const waist = parseFloat(latest.Vita || latest.vita || 0);
             const whtr = heightCm > 0 && waist > 0 ? (waist / heightCm) : 0;
             let statusWaist = "Addome Magro";
             if (whtr >= 0.42 && whtr <= 0.50) score += 35;
-            else if (whtr > 0.50 && whtr <= 0.55) { score += 25; statusWaist = "Addome Neutro"; }
+            else if (whtr > 0.50 && whtr <= 0.55) { score += 25; statusWaist = "Addome Neutro/Lieve Grasso"; }
             else if (whtr > 0) { score += 15; statusWaist = "Addome Prominente"; }
 
+            // 2. Simmetria Bicipiti (Max 20pt)
             const bicDx = parseFloat(latest.BicipiteDx || latest.bicipite_dx || 0);
             const bicSx = parseFloat(latest.BicipiteSx || latest.bicipite_sx || 0);
             const armDiff = Math.abs(bicDx - bicSx);
-            let statusArms = bicDx >= 38 ? "Braccia Sviluppate" : "Braccia Snelle";
+            let statusArms = bicDx >= 38 ? "Braccia Sviluppate/Trofiche" : "Braccia Normali/Snelle";
             if (bicDx > 0 && bicSx > 0) {
                 if (armDiff <= 0.5) score += 20;
                 else if (armDiff <= 1.2) score += 15;
                 else score += 8;
             } else score += 15;
 
+            // 3. Simmetria Quadricipiti / Polpacci (Max 20pt)
             const quadDx = parseFloat(latest.QuadricipiteDx || latest.quadricipite_dx || 0);
             const quadSx = parseFloat(latest.QuadricipiteSx || latest.quadricipite_sx || 0);
             const legDiff = Math.abs(quadDx - quadSx);
@@ -813,6 +856,7 @@
                 else score += 8;
             } else score += 15;
 
+            // 4. Proporzione Spalle/Vita (Max 25pt)
             const shoulders = parseFloat(latest.Spalle || latest.spalle || 0);
             const vTaper = waist > 0 && shoulders > 0 ? (shoulders / waist) : 0;
             if (vTaper >= 0.55) score += 25;
@@ -824,24 +868,28 @@
                 whtr: whtr.toFixed(2),
                 symmetryArm: armDiff.toFixed(1),
                 symmetryLeg: legDiff.toFixed(1),
-                diagnosisMeasures: `${statusWaist}, ${statusArms}, ${statusLegs}`
+                diagnosisMeasures: `${statusWaist}, ${statusArms}, ${statusLegs} (Simmetria: ${armDiff <= 0.8 ? 'Ottima' : 'Migliorabile'})`
             };
         }
 
         function renderScaleAnalysis() {
             const box = document.getElementById('scaleAnalysisBox');
+            const homeDisplay = document.getElementById('homeWeightDisplay');
             const historyList = document.getElementById('scaleHistoryList');
             historyList.innerHTML = '';
 
             if (!db.scaleData.length) {
                 box.innerHTML = '<p class="text-slate-500 italic text-center">Nessun dato pesata caricato.</p>';
+                homeDisplay.textContent = '- kg';
                 historyList.innerHTML = '<p class="text-xs text-slate-500 italic text-center">Nessuna pesata salvata.</p>';
-                updateDashboardAndAnalytics();
+                updateIntegratedScore();
                 return;
             }
 
             const latest = db.scaleData[0];
             const weightVal = latest.Peso || latest.peso || '-';
+            homeDisplay.textContent = `${weightVal} kg`;
+
             const evaluation = calculateAdvancedFitnessScore(latest);
             const score = evaluation.score;
             let scoreColor = score >= 75 ? 'text-emerald-400' : (score >= 50 ? 'text-yellow-400' : 'text-red-400');
@@ -860,6 +908,12 @@
                     <div><span class="text-slate-400">Massa Grassa:</span> <b class="text-white">${latest.MassaGrassa || latest.massa_grassa || '-'} %</b></div>
                     <div><span class="text-slate-400">Massa Muscolare:</span> <b class="text-white">${latest.Muscoli || latest.muscoli || '-'} kg</b></div>
                 </div>
+                <div class="mt-2 p-2 bg-slate-950/60 rounded border border-slate-800 text-[10px] text-slate-400 space-y-1">
+                    <p class="font-semibold text-slate-300">Regole Assegnazione Punti (Max 100):</p>
+                    <p>• IMC (18.5-24.9): max 25pt | • Grasso Viscerale (&le;9): max 25pt</p>
+                    <p>• Massa Grassa (11-18%): max 25pt | • Idratazione Acqua (55-65%): max 25pt</p>
+                    <p class="text-emerald-400 pt-1"><b>Conclusione:</b> ${evaluation.diagnosisWeight}</p>
+                </div>
             `;
 
             db.scaleData.forEach(item => {
@@ -877,7 +931,7 @@
                 historyList.appendChild(div);
             });
 
-            updateDashboardAndAnalytics();
+            updateIntegratedScore();
         }
 
         function renderMeasuresAnalysis() {
@@ -888,7 +942,7 @@
             if (!db.measuresData.length) {
                 box.innerHTML = '<p class="text-slate-500 italic text-center">Nessun dato misurazione caricato.</p>';
                 historyList.innerHTML = '<p class="text-xs text-slate-500 italic text-center">Nessuna misurazione salvata.</p>';
-                updateDashboardAndAnalytics();
+                updateIntegratedScore();
                 return;
             }
 
@@ -910,6 +964,14 @@
                     <div><span class="text-slate-400">Spalle:</span> <b class="text-white">${latest.Spalle || latest.spalle || '-'} cm</b></div>
                     <div><span class="text-slate-400">Vita:</span> <b class="text-white">${latest.Vita || latest.vita || '-'} cm</b></div>
                     <div><span class="text-slate-400">Rapporto Vita/Alt:</span> <b class="text-white">${evaluation.whtr}</b></div>
+                    <div><span class="text-slate-400">Bicipiti Dx/Sx:</span> <b class="text-white">${latest.BicipiteDx || '-'}/${latest.BicipiteSx || '-'} cm</b></div>
+                    <div><span class="text-slate-400">Quadricipiti Dx/Sx:</span> <b class="text-white">${latest.QuadricipiteDx || '-'}/${latest.QuadricipiteSx || '-'} cm</b></div>
+                </div>
+                <div class="mt-2 p-2 bg-slate-950/60 rounded border border-slate-800 text-[10px] text-slate-400 space-y-1">
+                    <p class="font-semibold text-slate-300">Regole Assegnazione Punti (Max 100):</p>
+                    <p>• WHtR Vita/Altezza (0.42-0.50): max 35pt | • Simmetria Bicipiti (&le;0.5cm): max 20pt</p>
+                    <p>• Simmetria Quadricipiti (&le;0.8cm): max 20pt | • Proporzione V-Taper Spalle/Vita: max 25pt</p>
+                    <p class="text-emerald-400 pt-1"><b>Conclusione:</b> ${evaluation.diagnosisMeasures}</p>
                 </div>
             `;
 
@@ -928,143 +990,93 @@
                 historyList.appendChild(div);
             });
 
-            updateDashboardAndAnalytics();
+            updateIntegratedScore();
         }
 
-        function updateDashboardAndAnalytics() {
-            const scaleEval = db.scaleData.length ? calculateAdvancedFitnessScore(db.scaleData[0]) : { score: 0, diagnosisWeight: "Dati assenti" };
-            const measEval = db.measuresData.length ? calculateMeasuresScore(db.measuresData[0]) : { score: 0, diagnosisMeasures: "Dati assenti" };
-
-            let globalScore = 0;
-            if (db.scaleData.length && db.measuresData.length) globalScore = Math.round((scaleEval.score + measEval.score) / 2);
-            else if (db.scaleData.length) globalScore = scaleEval.score;
-            else if (db.measuresData.length) globalScore = measEval.score;
-
-            let levelText = "Base A1";
-            if (globalScore >= 85) levelText = "Avanzato A+";
-            else if (globalScore >= 70) levelText = "Intermedio B2";
-            else if (globalScore >= 50) levelText = "Avanzando B1";
-
-            document.getElementById('leanLevelTitle').textContent = levelText;
-            document.getElementById('leanScoreDisplay').textContent = `Score Forma: ${globalScore}/100`;
-
-            const latestW = db.scaleData.length ? (db.scaleData[0].Peso || db.scaleData[0].peso || '--') : '--';
-            document.getElementById('leanWeightTrend').textContent = `Peso Attuale: ${latestW} kg`;
-
-            const daysElem = document.getElementById('leanDaysInactive');
-            if (db.workouts.length > 0) {
-                const latestWDate = new Date(db.workouts[0].date);
-                latestWDate.setHours(0,0,0,0);
-                const today = new Date();
-                today.setHours(0,0,0,0);
-                const diffDays = Math.floor((today - latestWDate) / (1000 * 60 * 60 * 24));
-                daysElem.textContent = `Inattività: ${diffDays < 0 ? 0 : diffDays} g`;
-            } else {
-                daysElem.textContent = "Inattività: - g";
-            }
-
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            const count30Days = db.workouts.filter(w => new Date(w.date) >= thirtyDaysAgo).length;
-
-            document.getElementById('actualWorkouts30Days').textContent = count30Days;
-            const targetM = db.targetMonth || 12;
-            const pct = Math.min(Math.round((count30Days / targetM) * 100), 100);
-
-            document.getElementById('targetProgressBar').style.width = `${pct}%`;
-            document.getElementById('targetPercentageText').textContent = `${pct}%`;
-
-            document.getElementById('leanNextTarget').textContent = `${targetM} Sessioni/Mese`;
-            const missing = targetM - count30Days;
-            document.getElementById('leanTargetProgress').textContent = missing > 0 ? `Mancano ${missing} sessioni` : "Target Raggiunto! 🎉";
-            document.getElementById('leanProgressBar').style.width = `${pct}%`;
-
-            const currentSchedaKey = db.activeSchedaKey || 'Nessuna';
-            const countSchedaUsage = db.workouts.filter(w => w.scheda === currentSchedaKey).length;
-
-            const satBox = document.getElementById('schedaSaturationBox');
-            let satStatusMsg = "In corso (Fase Iniziale)";
-            let satAdvice = "Continua con la progressione dei carichi su questa scheda.";
-
-            if (countSchedaUsage >= 18) {
-                satStatusMsg = "Saturazione Elevata (18+ cicli)";
-                satAdvice = "Si consiglia di cambiare scheda o variare stimolo/volumi per prevenire stalli.";
-            } else if (countSchedaUsage >= 12) {
-                satStatusMsg = "Fase di Consolidamento (12-17 cicli)";
-                satAdvice = "Pianifica un eventuale scarico o variante esercizi nelle prossime settimane.";
-            }
-
-            document.getElementById('leanSchedaSatStatus').textContent = `${currentSchedaKey}: ${countSchedaUsage} sessioni`;
-
-            if (satBox) {
-                satBox.innerHTML = `
-                    <div class="flex justify-between items-center font-bold">
-                        <span>Scheda Attiva: <b class="text-emerald-400">${currentSchedaKey}</b></span>
-                        <span class="text-white">${countSchedaUsage} Sessioni Fatte</span>
-                    </div>
-                    <p class="text-[11px] text-slate-300">Stato: <b>${satStatusMsg}</b></p>
-                    <p class="text-[10px] text-slate-400 italic">${satAdvice}</p>
-                `;
-            }
-
-            const weightDateElem = document.getElementById('nextWeightDateSuggest');
-            const measureDateElem = document.getElementById('nextMeasureDateSuggest');
-
-            if (db.scaleData.length > 0) {
-                const lastWDate = new Date(db.scaleData[0].Data || db.scaleData[0].data);
-                const nextWDate = new Date(lastWDate);
-                nextWDate.setDate(nextWDate.getDate() + 7);
-                weightDateElem.textContent = nextWDate.toISOString().split('T')[0];
-            } else {
-                weightDateElem.textContent = "Disponibile subito";
-            }
-
-            if (db.measuresData.length > 0) {
-                const lastMDate = new Date(db.measuresData[0].Data || db.measuresData[0].data);
-                const nextMDate = new Date(lastMDate);
-                nextMDate.setDate(nextMDate.getDate() + 15);
-                measureDateElem.textContent = nextMDate.toISOString().split('T')[0];
-            } else {
-                measureDateElem.textContent = "Disponibile subito";
-            }
-
-            const projBox = document.getElementById('workoutProjectionBox');
-            if (projBox) {
-                projBox.innerHTML = `
-                    <div class="space-y-1.5 text-[11px]">
-                        <p><b class="text-emerald-400">Stato Attuale:</b> ${scaleEval.diagnosisWeight} - ${measEval.diagnosisMeasures}</p>
-                        <p><b class="text-blue-400">Target a 8-12 Settimane:</b> Incremento massa magra, riduzione WHtR sotto 0.48 e simmetrizzazione trofismo arti (&le;0.5cm).</p>
-                    </div>
-                `;
-            }
-
+        // MOTORINO INTEGRATO SEZIONE 6 OBIETTIVI CON DIAGNOSI
+        function updateIntegratedScore() {
             const scoreBox = document.getElementById('scoreCalculatorBox');
             const diagBox = document.getElementById('diagnosisContent');
-            if (scoreBox && diagBox) {
-                scoreBox.innerHTML = `
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-                        <span class="font-bold text-emerald-400">Punteggio Forma Globale</span>
-                        <span class="text-lg font-black ${globalScore >= 75 ? 'text-emerald-400' : 'text-yellow-400'}">${globalScore} / 100</span>
-                    </div>
-                    <div class="space-y-1 text-[11px] pt-1">
-                        <div class="flex justify-between"><span class="text-slate-400">Punteggio Composizione Pesata:</span><span class="text-white font-bold">${scaleEval.score}/100</span></div>
-                        <div class="flex justify-between"><span class="text-slate-400">Punteggio Circonferenze:</span><span class="text-white font-bold">${measEval.score}/100</span></div>
-                    </div>
-                `;
-                diagBox.innerHTML = `
-                    <ul class="space-y-1 text-[11px]">
-                        <li class="flex justify-between"><span class="text-slate-400">Stato Ponderale:</span> <b class="text-slate-200">${scaleEval.diagnosisWeight}</b></li>
-                        <li class="flex justify-between"><span class="text-slate-400">Profilo Antropometrico:</span> <b class="text-slate-200">${measEval.diagnosisMeasures}</b></li>
-                    </ul>
-                `;
+            if (!scoreBox || !diagBox) return;
+
+            const scaleEval = db.scaleData.length ? calculateAdvancedFitnessScore(db.scaleData[0]) : { score: 0, diagnosisWeight: "Nessun dato pesata" };
+            const measEval = db.measuresData.length ? calculateMeasuresScore(db.measuresData[0]) : { score: 0, diagnosisMeasures: "Nessun dato misurazioni" };
+
+            if (!db.scaleData.length && !db.measuresData.length) {
+                scoreBox.innerHTML = '<p class="text-slate-400 italic text-center">In attesa di dati pesata/misurazioni per il calcolo avanzato.</p>';
+                diagBox.innerHTML = '<p class="text-slate-500 italic">Carica dati pesata e misurazioni per generare la valutazione sintetica.</p>';
+                return;
             }
+
+            const globalScore = Math.round((scaleEval.score + measEval.score) / (db.scaleData.length && db.measuresData.length ? 2 : 1));
+            let scoreColor = globalScore >= 75 ? 'text-emerald-400' : (globalScore >= 50 ? 'text-yellow-400' : 'text-red-400');
+
+            scoreBox.innerHTML = `
+                <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                    <span class="font-bold text-emerald-400">Punteggio Forma Globale</span>
+                    <span class="text-lg font-black ${scoreColor}">${globalScore} / 100</span>
+                </div>
+                <div class="space-y-1 text-[11px] pt-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Valutazione Peso & Bilancia:</span>
+                        <span class="text-white font-bold">${scaleEval.score} / 100</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Valutazione Misurazioni Antropometriche:</span>
+                        <span class="text-white font-bold">${measEval.score} / 100</span>
+                    </div>
+                    <div class="flex justify-between border-t border-slate-800 pt-1 mt-1">
+                        <span class="text-slate-400">Altezza Profilo Utilizzata:</span>
+                        <span class="text-white font-bold">${db.profile.height} cm</span>
+                    </div>
+                </div>
+            `;
+
+            // RENDERING MINI-DEFINIZIONE STRUTTURATA STATO ATTUALE
+            diagBox.innerHTML = `
+                <ul class="space-y-1 text-[11px]">
+                    <li class="flex justify-between"><span class="text-slate-400">Stato Ponderale:</span> <b class="text-slate-200">${scaleEval.diagnosisWeight || 'N/D'}</b></li>
+                    <li class="flex justify-between"><span class="text-slate-400">Profilo Antropometrico:</span> <b class="text-slate-200">${measEval.diagnosisMeasures || 'N/D'}</b></li>
+                </ul>
+            `;
         }
 
         function saveTargetSettings() {
             const target = parseInt(document.getElementById('targetWorkoutsMonth').value) || 12;
             db.targetMonth = target;
             localStorage.setItem('pwa_target_month', target);
-            updateDashboardAndAnalytics();
+            updateDashboardCounters();
+        }
+
+        // CONTATORI DASHBOARD
+        function updateDashboardCounters() {
+            document.getElementById('totalWorkoutsCount').textContent = db.workouts.length;
+            const daysElem = document.getElementById('daysSinceLastWorkout');
+
+            if (db.workouts.length === 0) {
+                daysElem.textContent = "-";
+                document.getElementById('actualWorkouts30Days').textContent = "0";
+                document.getElementById('targetProgressBar').style.width = "0%";
+                document.getElementById('targetPercentageText').textContent = "0%";
+                return;
+            }
+
+            const latestDate = new Date(db.workouts[0].date);
+            latestDate.setHours(0,0,0,0);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const diffDays = Math.floor((today - latestDate) / (1000 * 60 * 60 * 24));
+            daysElem.textContent = diffDays < 0 ? 0 : diffDays;
+
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const count30Days = db.workouts.filter(w => new Date(w.date) >= thirtyDaysAgo).length;
+            document.getElementById('actualWorkouts30Days').textContent = count30Days;
+
+            const pct = Math.min(Math.round((count30Days / db.targetMonth) * 100), 100);
+            document.getElementById('targetProgressBar').style.width = `${pct}%`;
+            document.getElementById('targetPercentageText').textContent = `${pct}%`;
         }
 
         function downloadExcelTemplate() {
@@ -1079,8 +1091,15 @@
         }
 
         function exportWorkoutsToExcel() {
-            if (db.workouts.length === 0) return alert("Nessun dato da esportare!");
-            const exportData = db.workouts.map(w => ({ Data: w.date, SchedaVersione: w.scheda, DettagliNote: w.details }));
+            if (db.workouts.length === 0) {
+                alert("Nessun dato da esportare!");
+                return;
+            }
+            const exportData = db.workouts.map(w => ({
+                Data: w.date,
+                SchedaVersione: w.scheda,
+                DettagliNote: w.details
+            }));
             const worksheet = XLSX.utils.json_to_sheet(exportData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Storico Allenamenti");
@@ -1088,3 +1107,4 @@
         }
     </script>
 </body>
+</html>
