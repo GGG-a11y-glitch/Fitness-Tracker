@@ -70,6 +70,9 @@
                 <button onclick="navigateTo('home')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
                     <i class="ph ph-house text-emerald-400 text-lg"></i> Homepage
                 </button>
+                <button onclick="navigateTo('profilo')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
+                    <i class="ph ph-user text-emerald-400 text-lg"></i> Il Mio Profilo
+                </button>
                 <button onclick="navigateTo('registra')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
                     <i class="ph ph-plus-circle text-emerald-400 text-lg"></i> Nuova Registrazione
                 </button>
@@ -128,7 +131,43 @@
         </div>
     </section>
 
-    <!-- SEZIONE 2: REGISTRAZIONE ALLENAMENTO -->
+    <!-- SEZIONE 2: IL MIO PROFILO -->
+    <section id="sec-profilo" class="page-section">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-4">
+            <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
+                <i class="ph ph-user text-lg"></i> Il Mio Profilo
+            </h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Nome e Cognome</label>
+                    <input type="text" id="profileName" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Data di Nascita</label>
+                        <input type="date" id="profileBirthDate" onchange="updateProfileAge()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Età (Calcolata)</label>
+                        <input type="text" id="profileAge" readonly class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-400 font-bold text-center">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Altezza (cm)</label>
+                    <input type="number" id="profileHeight" placeholder="Es. 191" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Ruolo / Note Personali</label>
+                    <input type="text" id="profileNotes" placeholder="Es. Senior CRM Business Analyst" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <button onclick="saveUserProfile()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
+                    <i class="ph ph-floppy-disk text-lg"></i> Salva Profilo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEZIONE 3: REGISTRAZIONE ALLENAMENTO -->
     <section id="sec-registra" class="page-section">
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
             <h2 class="text-base font-semibold text-emerald-400 mb-3 flex items-center gap-2">
@@ -158,7 +197,7 @@
         </div>
     </section>
 
-    <!-- SEZIONE 3: REPOSITORY SCHEDE -->
+    <!-- SEZIONE 4: REPOSITORY SCHEDE -->
     <section id="sec-repository" class="page-section">
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <div class="flex justify-between items-center">
@@ -185,7 +224,7 @@
         </div>
     </section>
 
-    <!-- SEZIONE 4: STORICO REGISTRAZIONI -->
+    <!-- SEZIONE 5: STORICO REGISTRAZIONI -->
     <section id="sec-storico" class="page-section">
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <div class="flex justify-between items-center">
@@ -200,7 +239,7 @@
         </div>
     </section>
 
-    <!-- SEZIONE 5: OBIETTIVI -->
+    <!-- SEZIONE 6: OBIETTIVI -->
     <section id="sec-obiettivi" class="page-section space-y-4">
         
         <!-- TARGET & FREQUENZA ALLENAMENTI -->
@@ -241,10 +280,10 @@
 
     </section>
 
-    <!-- SEZIONE 6: PESATE -->
+    <!-- SEZIONE 7: PESATE -->
     <section id="sec-pesate" class="page-section space-y-4">
         
-        <!-- REGISTRAZIONE PESATE (EX XIAOMI MI SCALE 2 DATA) -->
+        <!-- REGISTRAZIONE PESATE -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <div class="flex justify-between items-center">
                 <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
@@ -280,7 +319,7 @@
                 </div>
             </div>
 
-            <!-- Elenco Storico Pesate con Tasto Eliminazione Singola -->
+            <!-- Elenco Storico Pesate -->
             <div class="space-y-2 pt-2 border-t border-slate-700/60">
                 <label class="block text-xs text-slate-400 font-medium">Gestione Registrazioni Salvate</label>
                 <div id="scaleHistoryList" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
@@ -292,6 +331,12 @@
     <!-- SCRIPT LOGICA APPLICAZIONE -->
     <script>
         let db = {
+            profile: JSON.parse(localStorage.getItem('pwa_user_profile')) || {
+                name: "Giacomo Gorla",
+                birthDate: "1992-09-13",
+                height: 191,
+                notes: "Senior CRM Business Analyst"
+            },
             repository: JSON.parse(localStorage.getItem('pwa_repository')) || {},
             activeSchedaKey: localStorage.getItem('pwa_active_scheda') || null,
             workouts: JSON.parse(localStorage.getItem('pwa_workouts')) || [],
@@ -304,11 +349,48 @@
             document.getElementById('logDate').value = today;
             document.getElementById('targetWorkoutsMonth').value = db.targetMonth;
 
+            loadUserProfile();
             renderRepository();
             renderWorkouts();
             renderScaleAnalysis();
             updateDashboardCounters();
         });
+
+        // GESTIONE PROFILO UTENTE
+        function loadUserProfile() {
+            document.getElementById('profileName').value = db.profile.name || '';
+            document.getElementById('profileBirthDate').value = db.profile.birthDate || '';
+            document.getElementById('profileHeight').value = db.profile.height || '';
+            document.getElementById('profileNotes').value = db.profile.notes || '';
+            updateProfileAge();
+        }
+
+        function updateProfileAge() {
+            const birthVal = document.getElementById('profileBirthDate').value;
+            if (!birthVal) {
+                document.getElementById('profileAge').value = '-';
+                return;
+            }
+            const birthDate = new Date(birthVal);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            document.getElementById('profileAge').value = `${age} anni`;
+        }
+
+        function saveUserProfile() {
+            db.profile = {
+                name: document.getElementById('profileName').value.trim(),
+                birthDate: document.getElementById('profileBirthDate').value,
+                height: parseInt(document.getElementById('profileHeight').value) || 0,
+                notes: document.getElementById('profileNotes').value.trim()
+            };
+            localStorage.setItem('pwa_user_profile', JSON.stringify(db.profile));
+            alert("Profilo aggiornato con successo!");
+        }
 
         // NAVIGAZIONE MENU
         function toggleMenu() {
@@ -509,7 +591,7 @@
             });
         }
 
-        // REGISTRAZIONE PESATE: IMPORT, SCORE, TEMPLATE, DELETE & EXPORT
+        // REGISTRAZIONE PESATE
         function downloadScaleTemplate() {
             const templateScaleData = [
                 {
@@ -545,13 +627,11 @@
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-                // Assegna ID univoco
                 const incoming = jsonData.map((item, idx) => ({
                     id: Date.now() + idx,
                     ...item
                 }));
 
-                // Unione e ordinamento per data decrescente
                 db.scaleData = [...incoming, ...db.scaleData];
                 db.scaleData.sort((a, b) => new Date(b.Data || b.data || 0) - new Date(a.Data || a.data || 0));
 
@@ -588,25 +668,20 @@
             XLSX.writeFile(workbook, `Xiaomi_Scale_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
-        // CALCOLO SCORE DI FORMA (1-100)
         function calculateFitnessScore(latest) {
             if (!latest) return 0;
-
             let score = 0;
 
-            // 1. BMI / IMC (Max 25pt)
             const imc = parseFloat(latest.IMC || latest.imc || 0);
             if (imc >= 18.5 && imc <= 24.9) score += 25;
             else if (imc >= 25.0 && imc <= 27.5) score += 18;
             else if (imc > 0) score += 10;
 
-            // 2. Grasso % (Max 25pt)
             const fatPct = parseFloat(latest.MassaGrassa || latest.massa_grassa || 0);
             if (fatPct >= 10 && fatPct <= 18) score += 25;
             else if (fatPct > 18 && fatPct <= 23) score += 18;
             else if (fatPct > 0) score += 10;
 
-            // 3. Massa Muscolare (Max 25pt)
             const weight = parseFloat(latest.Peso || latest.peso || 1);
             const muscle = parseFloat(latest.Muscoli || latest.muscoli || 0);
             const musclePct = (muscle / weight) * 100;
@@ -614,7 +689,6 @@
             else if (musclePct >= 65) score += 18;
             else if (musclePct > 0) score += 10;
 
-            // 4. Grasso Viscerale (Max 25pt)
             const visceral = parseFloat(latest.GrassoViscerale || latest.grasso_viscerale || 0);
             if (visceral > 0 && visceral <= 6) score += 25;
             else if (visceral > 6 && visceral <= 9) score += 18;
@@ -667,7 +741,6 @@
                 </div>
             `;
 
-            // Rendering elenco con cestino per ogni singola pesata
             db.scaleData.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'bg-slate-900/60 border border-slate-700/50 rounded p-2 flex justify-between items-center text-xs';
