@@ -40,20 +40,23 @@
 </head>
 <body class="p-4 max-w-xl mx-auto pb-12 relative min-h-screen">
 
-    <!-- BARRA DI NAVIGAZIONE SUPERIORE CON HAMBURGER MENU -->
+    <!-- BARRA DI NAVIGAZIONE SUPERIORE (HAMBURGER A SINISTRA) -->
     <header class="flex justify-between items-center bg-slate-800 border border-slate-700 rounded-xl p-3.5 mb-4 shadow-lg sticky top-2 z-30">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="showSection('home')">
-            <i class="ph ph-barbell text-2xl text-emerald-400"></i>
-            <span class="font-bold text-base text-white tracking-wide">Fitness PWA</span>
+        <div class="flex items-center gap-3">
+            <button onclick="toggleMenu()" class="p-1 text-slate-300 hover:text-emerald-400 text-2xl focus:outline-none">
+                <i class="ph ph-list"></i>
+            </button>
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showSection('home')">
+                <i class="ph ph-barbell text-xl text-emerald-400"></i>
+                <span class="font-bold text-base text-white tracking-wide">Fitness PWA</span>
+            </div>
         </div>
-        <button onclick="toggleMenu()" class="p-2 text-slate-300 hover:text-emerald-400 text-2xl focus:outline-none">
-            <i class="ph ph-list"></i>
-        </button>
+        <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-1 rounded font-mono" id="headerActiveScheda">Scheda: -</span>
     </header>
 
-    <!-- SIDEBAR HAMBURGER MENU (A SCOMPARSA) -->
+    <!-- SIDEBAR HAMBURGER MENU A SINISTRA (A SCOMPARSA) -->
     <div id="sidebarOverlay" onclick="toggleMenu()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 hidden transition-opacity"></div>
-    <aside id="sidebar" class="fixed top-0 right-0 w-64 h-full bg-slate-900 border-l border-slate-800 p-5 z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
+    <aside id="sidebar" class="fixed top-0 left-0 w-64 h-full bg-slate-900 border-r border-slate-800 p-5 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
         <div>
             <div class="flex justify-between items-center pb-4 border-b border-slate-800 mb-4">
                 <span class="font-bold text-emerald-400 flex items-center gap-2">
@@ -77,7 +80,7 @@
                     <i class="ph ph-clock-counter-clockwise text-emerald-400 text-lg"></i> Storico Allenamenti
                 </button>
                 <button onclick="navigateTo('obiettivi')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
-                    <i class="ph ph-target text-emerald-400 text-lg"></i> Obiettivi e Peso
+                    <i class="ph ph-chart-line-up text-emerald-400 text-lg"></i> Obiettivi e Xiaomi Scale
                 </button>
             </nav>
         </div>
@@ -86,13 +89,10 @@
         </div>
     </aside>
 
-    <!-- SEZIONE 1: HOMEPAGE (DASHBOARD RECAP) -->
+    <!-- SEZIONE 1: HOMEPAGE -->
     <section id="sec-home" class="page-section active space-y-4">
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-sm font-semibold text-emerald-400">Riepilogo Attività</h2>
-                <span class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded" id="homeActiveBadge">Scheda: -</span>
-            </div>
+            <h2 class="text-xs font-semibold text-emerald-400 mb-3">Riepilogo Allenamenti</h2>
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 text-center">
                     <p class="text-[11px] text-slate-400 mb-0.5">Giorni Inattività</p>
@@ -107,11 +107,11 @@
 
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg flex justify-between items-center">
             <div>
-                <p class="text-xs text-slate-400">Ultimo Peso Registrato</p>
+                <p class="text-xs text-slate-400">Ultimo Peso (Xiaomi Scale)</p>
                 <p class="text-xl font-bold text-white" id="homeWeightDisplay">- kg</p>
             </div>
             <button onclick="navigateTo('obiettivi')" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg">
-                Aggiorna
+                Vedi Analisi
             </button>
         </div>
 
@@ -197,82 +197,98 @@
         </div>
     </section>
 
-    <!-- SEZIONE 5: OBIETTIVI E TRACCIAMENTO PESO -->
+    <!-- SEZIONE 5: OBIETTIVI & XIAOMI SCALE 2 -->
     <section id="sec-obiettivi" class="page-section space-y-4">
-        <!-- Scheda Obiettivo -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
-            <h2 class="text-base font-semibold text-emerald-400 mb-3 flex items-center gap-2">
-                <i class="ph ph-target text-lg"></i> Obiettivi Fitness
-            </h2>
-            <div class="space-y-2">
-                <textarea id="targetGoalText" placeholder="Es. Raggiungere 80kg, aumentare panca piana a 100kg..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500 h-20"></textarea>
-                <button onclick="saveGoal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1.5 rounded-lg text-xs transition-colors">
-                    Salva Obiettivo
-                </button>
-            </div>
-        </div>
-
-        <!-- Tracciamento Peso Corporeo -->
+        
+        <!-- 1. STATO AVANZAMENTO OBIETTIVI -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
-                <i class="ph ph-scales text-lg"></i> Registro Peso Corporeo
+                <i class="ph ph-target text-lg"></i> Target & Frequenza Allenamenti
             </h2>
             <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Data</label>
-                    <input type="date" id="weightDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                    <label class="block text-[10px] text-slate-400 mb-1">Target Mensile (Sessioni)</label>
+                    <input type="number" id="targetWorkoutsMonth" value="12" onchange="saveTargetSettings()" class="w-full bg-slate-800 border border-slate-700 rounded p-1 text-xs text-white text-center font-bold">
                 </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Peso (kg)</label>
-                    <input type="number" step="0.1" id="weightVal" placeholder="Es. 78.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50 flex flex-col justify-center items-center">
+                    <span class="text-[10px] text-slate-400">Completati negli ultimi 30g</span>
+                    <span class="text-lg font-black text-emerald-400" id="actualWorkouts30Days">0</span>
                 </div>
             </div>
-            <button onclick="addWeightLog()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs transition-colors">
-                Registra Peso
-            </button>
-
-            <div class="pt-2 border-t border-slate-700/60">
-                <label class="block text-xs text-slate-400 mb-2">Storico Peso</label>
-                <div id="weightHistoryList" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+            <div>
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                    <span>Avanzamento Target</span>
+                    <span id="targetPercentageText">0%</span>
+                </div>
+                <div class="w-full bg-slate-900 rounded-full h-2 border border-slate-700">
+                    <div id="targetProgressBar" class="bg-emerald-400 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
             </div>
         </div>
+
+        <!-- 2. IMPORTAZIONE & ANALISI XIAOMI MI SCALE 2 -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
+                    <i class="ph ph-scales text-lg"></i> Xiaomi Mi Scale 2 Data
+                </h2>
+                <button onclick="downloadScaleTemplate()" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded transition-colors">
+                    Template .xlsx
+                </button>
+            </div>
+
+            <!-- Upload File Xiaomi Scale -->
+            <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/60 space-y-2">
+                <label class="block text-xs text-slate-300 font-medium">Carica File Pesate (.xlsx)</label>
+                <input type="file" id="scaleFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600">
+                <button onclick="uploadScaleData()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1">
+                    <i class="ph ph-upload-simple"></i> Elabora e Analizza Dati
+                </button>
+            </div>
+
+            <!-- Analisi Stato Attuale (Ultima Pesata) -->
+            <div class="space-y-2">
+                <label class="block text-xs text-slate-400">Analisi Stato Attuale (Ultima Pesata)</label>
+                <div id="scaleAnalysisBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-2">
+                    <p class="text-slate-500 italic text-center">Nessun dato pesata caricato.</p>
+                </div>
+            </div>
+        </div>
+
     </section>
 
     <!-- SCRIPT APPLICAZIONE -->
     <script>
-        // Database Locale
         let db = {
             repository: JSON.parse(localStorage.getItem('pwa_repository')) || {},
             activeSchedaKey: localStorage.getItem('pwa_active_scheda') || null,
             workouts: JSON.parse(localStorage.getItem('pwa_workouts')) || [],
-            weights: JSON.parse(localStorage.getItem('pwa_weights')) || [],
-            goal: localStorage.getItem('pwa_goal') || ''
+            scaleData: JSON.parse(localStorage.getItem('pwa_scaledata')) || [],
+            targetMonth: parseInt(localStorage.getItem('pwa_target_month')) || 12
         };
 
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('logDate').value = today;
-            document.getElementById('weightDate').value = today;
-            
-            document.getElementById('targetGoalText').value = db.goal;
+            document.getElementById('targetWorkoutsMonth').value = db.targetMonth;
 
             renderRepository();
             renderWorkouts();
-            renderWeights();
+            renderScaleAnalysis();
             updateDashboardCounters();
         });
 
-        // GESTIONE NAVIGAZIONE & SIDEBAR HAMBURGER
+        // NAVIGAZIONE E HAMBURGER MENU (A SINISTRA)
         function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            const isHidden = sidebar.classList.contains('translate-x-full');
+            const isHidden = sidebar.classList.contains('-translate-x-full');
 
             if (isHidden) {
-                sidebar.classList.remove('translate-x-full');
+                sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');
             } else {
-                sidebar.classList.add('translate-x-full');
+                sidebar.classList.add('-translate-x-full');
                 overlay.classList.add('hidden');
             }
         }
@@ -323,7 +339,7 @@
         function renderRepository() {
             const listContainer = document.getElementById('repositoryList');
             const selectLog = document.getElementById('logSchedaSelect');
-            const badge = document.getElementById('homeActiveBadge');
+            const badge = document.getElementById('headerActiveScheda');
 
             listContainer.innerHTML = '';
             selectLog.innerHTML = '<option value="">Nessuna / Allenamento Libero</option>';
@@ -461,83 +477,122 @@
             });
         }
 
-        // TRACCIAMENTO PESO E OBIETTIVI
-        function saveGoal() {
-            const txt = document.getElementById('targetGoalText').value;
-            db.goal = txt;
-            localStorage.setItem('pwa_goal', txt);
-            alert("Obiettivo salvato!");
-        }
+        // CARICAMENTO ED ELABORAZIONE XIAOMI MI SCALE 2 DATA
+        function uploadScaleData() {
+            const fileInput = document.getElementById('scaleFileInput');
+            const file = fileInput.files[0];
 
-        function addWeightLog() {
-            const date = document.getElementById('weightDate').value;
-            const weight = parseFloat(document.getElementById('weightVal').value);
-
-            if (!date || isNaN(weight)) {
-                alert("Inserisci data e valore di peso valido!");
+            if (!file) {
+                alert("Seleziona il file Excel delle pesate!");
                 return;
             }
 
-            db.weights.unshift({ id: Date.now(), date, weight });
-            db.weights.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-            localStorage.setItem('pwa_weights', JSON.stringify(db.weights));
-            document.getElementById('weightVal').value = '';
+                db.scaleData = jsonData;
+                localStorage.setItem('pwa_scaledata', JSON.stringify(db.scaleData));
+                fileInput.value = '';
 
-            renderWeights();
+                renderScaleAnalysis();
+            };
+            reader.readAsArrayBuffer(file);
         }
 
-        function deleteWeightLog(id) {
-            if (!confirm("Eliminare questa misurazione?")) return;
-            db.weights = db.weights.filter(w => w.id !== id);
-            localStorage.setItem('pwa_weights', JSON.stringify(db.weights));
-            renderWeights();
-        }
-
-        function renderWeights() {
-            const list = document.getElementById('weightHistoryList');
+        function renderScaleAnalysis() {
+            const box = document.getElementById('scaleAnalysisBox');
             const homeDisplay = document.getElementById('homeWeightDisplay');
-            list.innerHTML = '';
 
-            if (db.weights.length === 0) {
-                list.innerHTML = '<p class="text-xs text-slate-500 italic">Nessun peso registrato.</p>';
+            if (!db.scaleData || db.scaleData.length === 0) {
+                box.innerHTML = '<p class="text-slate-500 italic text-center">Nessun dato pesata caricato.</p>';
                 homeDisplay.textContent = '- kg';
                 return;
             }
 
-            homeDisplay.textContent = `${db.weights[0].weight} kg`;
+            const latest = db.scaleData[0]; // Prende l'ultima registrazione
+            homeDisplay.textContent = `${latest.Peso || latest.peso || '-'} kg`;
 
-            db.weights.forEach(w => {
-                const item = document.createElement('div');
-                item.className = 'bg-slate-900/60 border border-slate-700/60 rounded-lg p-2 flex justify-between items-center text-xs';
-                item.innerHTML = `
-                    <span class="text-slate-400">${w.date}</span>
-                    <span class="font-bold text-white">${w.weight} kg</span>
-                    <button onclick="deleteWeightLog(${w.id})" class="text-slate-500 hover:text-red-400 p-0.5">
-                        <i class="ph ph-trash text-sm"></i>
-                    </button>
-                `;
-                list.appendChild(item);
-            });
+            box.innerHTML = `
+                <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                    <span class="font-bold text-emerald-400">Data: ${latest.Data || latest.data || 'Recente'}</span>
+                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Xiaomi Mi Scale 2</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                    <div><span class="text-slate-400">Peso:</span> <b class="text-white">${latest.Peso || latest.peso || '-'} kg</b></div>
+                    <div><span class="text-slate-400">IMC (BMI):</span> <b class="text-white">${latest.IMC || latest.imc || '-'}</b></div>
+                    <div><span class="text-slate-400">Massa Grassa:</span> <b class="text-white">${latest.MassaGrassa || latest.massa_grassa || '-'} %</b></div>
+                    <div><span class="text-slate-400">Massa Muscolare:</span> <b class="text-white">${latest.Muscoli || latest.muscoli || '-'} kg</b></div>
+                    <div><span class="text-slate-400">Acqua:</span> <b class="text-white">${latest.Acqua || latest.acqua || '-'} %</b></div>
+                    <div><span class="text-slate-400">Grasso Viscerale:</span> <b class="text-white">${latest.GrassoViscerale || latest.grasso_viscerale || '-'}</b></div>
+                    <div><span class="text-slate-400">Metab. Basale:</span> <b class="text-white">${latest.MetabolismoBasale || latest.metabolismo_basale || '-'} kcal</b></div>
+                </div>
+            `;
         }
 
-        // CONTATORI E UTILITIES
+        function downloadScaleTemplate() {
+            const templateData = [
+                {
+                    Data: "2026-09-28",
+                    Peso: 78.5,
+                    IMC: 22.1,
+                    MassaGrassa: 15.2,
+                    Muscoli: 62.4,
+                    Acqua: 58.5,
+                    GrassoViscerale: 4,
+                    MetabolismoBasale: 1750
+                }
+            ];
+            const worksheet = XLSX.utils.json_to_sheet(templateData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Xiaomi_Scale_Data");
+            XLSX.writeFile(workbook, "Template_Xiaomi_Scale2.xlsx");
+        }
+
+        function saveTargetSettings() {
+            const target = parseInt(document.getElementById('targetWorkoutsMonth').value) || 12;
+            db.targetMonth = target;
+            localStorage.setItem('pwa_target_month', target);
+            updateDashboardCounters();
+        }
+
+        // CONTATORI E CALCOLI STATISTICI
         function updateDashboardCounters() {
             document.getElementById('totalWorkoutsCount').textContent = db.workouts.length;
 
             const daysElem = document.getElementById('daysSinceLastWorkout');
+            const now = new Date();
+
             if (db.workouts.length === 0) {
                 daysElem.textContent = "-";
+                document.getElementById('actualWorkouts30Days').textContent = "0";
+                document.getElementById('targetProgressBar').style.width = "0%";
+                document.getElementById('targetPercentageText').textContent = "0%";
                 return;
             }
 
+            // Days Since Last
             const latestDate = new Date(db.workouts[0].date);
-            const today = new Date();
             latestDate.setHours(0,0,0,0);
+            const today = new Date();
             today.setHours(0,0,0,0);
-
             const diffDays = Math.floor((today - latestDate) / (1000 * 60 * 60 * 24));
             daysElem.textContent = diffDays < 0 ? 0 : diffDays;
+
+            // Sessioni ultimi 30 giorni
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const count30Days = db.workouts.filter(w => new Date(w.date) >= thirtyDaysAgo).length;
+            document.getElementById('actualWorkouts30Days').textContent = count30Days;
+
+            // Avanzamento target
+            const pct = Math.min(Math.round((count30Days / db.targetMonth) * 100), 100);
+            document.getElementById('targetProgressBar').style.width = `${pct}%`;
+            document.getElementById('targetPercentageText').textContent = `${pct}%`;
         }
 
         function downloadExcelTemplate() {
