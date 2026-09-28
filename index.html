@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fitness & Tracker PWA Pro</title>
-    <!-- Tailwind CSS CDN per layout responsive e moderno -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS per Import/Export Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <!-- 1. REGISTRAZIONE RAPIDA ALLENAMENTO (IN ALTO) -->
+    <!-- 1. REGISTRAZIONE RAPIDA ALLENAMENTO -->
     <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-4 shadow-lg">
         <h2 class="text-base font-semibold text-emerald-400 mb-3 flex items-center gap-2">
             <i class="ph ph-plus-circle text-lg"></i> Nuova Registrazione Allenamento
@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <!-- 2. REPOSITORY SCHEDE (MINIMALE E COMPATTA) -->
+    <!-- 2. REPOSITORY SCHEDE (ESCLUSIVAMENTE REGISTRAZIONE E GESTIONE) -->
     <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-4 shadow-lg">
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
@@ -84,35 +84,20 @@
 
         <!-- Caricamento Nuova Scheda -->
         <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/60 mb-3 space-y-2">
-            <input type="text" id="schedaVersionName" placeholder="Nome versione (es. Ipertrofia Q4 2026)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <input type="text" id="schedaVersionName" placeholder="Nome versione (es. Scheda Ipertrofia 2026)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
             <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600">
             <button onclick="uploadSchedaToRepository()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1">
-                <i class="ph ph-upload-simple"></i> Carica in Repository
+                <i class="ph ph-upload-simple"></i> Aggiungi a Repository
             </button>
         </div>
 
-        <!-- Selettore Scheda Attiva e Azioni (Minimale) -->
-        <div class="space-y-2">
-            <label class="block text-xs text-slate-400">Scheda Attiva Selezionata</label>
-            <div class="flex gap-2">
-                <select id="repositorySelect" onchange="switchActiveScheda()" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500"></select>
-                <button onclick="downloadCurrentScheda()" title="Download file versione" class="bg-slate-700 hover:bg-slate-600 text-blue-400 p-2 rounded-lg text-sm transition-colors">
-                    <i class="ph ph-download-simple"></i>
-                </button>
-                <button onclick="deleteCurrentScheda()" title="Elimina versione" class="bg-slate-700 hover:bg-slate-600 text-red-400 p-2 rounded-lg text-sm transition-colors">
-                    <i class="ph ph-trash"></i>
-                </button>
+        <!-- Elenco Schede Salvate (File + Tasto Download + Tasto Cancella) -->
+        <div class="space-y-1.5">
+            <label class="block text-xs text-slate-400 mb-1">Schede in Repository</label>
+            <div id="repositoryList" class="space-y-1.5">
+                <!-- Popolato via JS -->
             </div>
         </div>
-
-        <!-- Anteprima Minimale Rifiutabile / Espandibile -->
-        <details class="mt-3 text-xs text-slate-400 bg-slate-900/40 rounded-lg border border-slate-700/40 p-2">
-            <summary class="cursor-pointer font-medium text-slate-300 hover:text-emerald-400 flex items-center justify-between">
-                <span>Anteprima rapida contenuto scheda</span>
-                <i class="ph ph-caret-down"></i>
-            </summary>
-            <div id="schedaContainer" class="mt-2 overflow-x-auto max-h-40"></div>
-        </details>
     </div>
 
     <!-- 3. STORICO ALLENAMENTI ED ESPORTAZIONE -->
@@ -140,23 +125,21 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Imposta data odierna come default
             document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
             
-            renderRepositorySelect();
-            renderActiveScheda();
+            renderRepository();
             renderWorkouts();
             updateDashboardCounters();
         });
 
-        // 1. CARICAMENTO SCHEDA IN REPOSITORY
+        // CARICAMENTO SCHEDA IN REPOSITORY
         function uploadSchedaToRepository() {
             const versionName = document.getElementById('schedaVersionName').value.trim();
             const fileInput = document.getElementById('excelFileInput');
             const file = fileInput.files[0];
 
             if (!versionName) {
-                alert("Inserisci un nome per identificare la versione della scheda!");
+                alert("Inserisci un nome per la versione della scheda!");
                 return;
             }
             if (!file) {
@@ -180,74 +163,86 @@
                 document.getElementById('schedaVersionName').value = '';
                 fileInput.value = '';
 
-                renderRepositorySelect();
-                renderActiveScheda();
+                renderRepository();
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // 2. GESTIONE REPOSITORY E SELEZIONE SCHEDE
-        function renderRepositorySelect() {
-            const selectRepo = document.getElementById('repositorySelect');
+        // RENDERING LISTA REPOSITORY E SELETTORI
+        function renderRepository() {
+            const listContainer = document.getElementById('repositoryList');
             const selectLog = document.getElementById('logSchedaSelect');
-            selectRepo.innerHTML = '';
+            const badge = document.getElementById('activeSchedaBadge');
+
+            listContainer.innerHTML = '';
             selectLog.innerHTML = '<option value="">Nessuna / Allenamento Libero</option>';
 
             const keys = Object.keys(db.repository);
+
             if (keys.length === 0) {
-                selectRepo.innerHTML = '<option value="">Nessuna scheda presente</option>';
+                listContainer.innerHTML = '<p class="text-xs text-slate-500 italic py-1">Nessuna scheda salvata in repository.</p>';
+                badge.textContent = "Scheda: Nessuna";
                 return;
             }
 
-            keys.forEach(key => {
-                const opt1 = document.createElement('option');
-                opt1.value = key;
-                opt1.textContent = key;
-                if (key === db.activeSchedaKey) opt1.selected = true;
-                selectRepo.appendChild(opt1);
+            if (!db.activeSchedaKey || !db.repository[db.activeSchedaKey]) {
+                db.activeSchedaKey = keys[0];
+                localStorage.setItem('pwa_active_scheda', db.activeSchedaKey);
+            }
 
-                const opt2 = document.createElement('option');
-                opt2.value = key;
-                opt2.textContent = key;
-                if (key === db.activeSchedaKey) opt2.selected = true;
-                selectLog.appendChild(opt2);
+            badge.textContent = `Scheda: ${db.activeSchedaKey}`;
+
+            keys.forEach(key => {
+                // Opzione per il form di registrazione
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = key;
+                if (key === db.activeSchedaKey) opt.selected = true;
+                selectLog.appendChild(opt);
+
+                // Elemento lista repository
+                const item = document.createElement('div');
+                item.className = `p-2 rounded-lg border text-xs flex justify-between items-center ${key === db.activeSchedaKey ? 'bg-slate-900 border-emerald-500/80 text-emerald-400' : 'bg-slate-900/60 border-slate-700/60 text-slate-300'}`;
+                
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 cursor-pointer flex-1" onclick="setActiveScheda('${key}')">
+                        <i class="ph ${key === db.activeSchedaKey ? 'ph-check-circle text-emerald-400' : 'ph-circle text-slate-500'} text-base"></i>
+                        <span class="font-medium truncate">${key}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="downloadScheda('${key}')" title="Download file Excel" class="p-1 hover:text-blue-400 text-slate-400 transition-colors">
+                            <i class="ph ph-download-simple text-base"></i>
+                        </button>
+                        <button onclick="deleteScheda('${key}')" title="Elimina scheda" class="p-1 hover:text-red-400 text-slate-400 transition-colors">
+                            <i class="ph ph-trash text-base"></i>
+                        </button>
+                    </div>
+                `;
+                listContainer.appendChild(item);
             });
         }
 
-        function switchActiveScheda() {
-            const select = document.getElementById('repositorySelect');
-            if (!select.value) return;
-
-            db.activeSchedaKey = select.value;
-            localStorage.setItem('pwa_active_scheda', db.activeSchedaKey);
-            renderActiveScheda();
+        function setActiveScheda(key) {
+            db.activeSchedaKey = key;
+            localStorage.setItem('pwa_active_scheda', key);
+            renderRepository();
         }
 
-        // 3. DOWNLOAD ED ELIMINAZIONE SINGOLA SCHEDA
-        function downloadCurrentScheda() {
-            if (!db.activeSchedaKey || !db.repository[db.activeSchedaKey]) {
-                alert("Nessuna scheda selezionata da scaricare!");
-                return;
-            }
-            const data = db.repository[db.activeSchedaKey];
+        function downloadScheda(key) {
+            if (!db.repository[key]) return;
+            const data = db.repository[key];
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Scheda");
-            XLSX.writeFile(workbook, `${db.activeSchedaKey.replace(/\s+/g, '_')}.xlsx`);
+            XLSX.writeFile(workbook, `${key.replace(/\s+/g, '_')}.xlsx`);
         }
 
-        function deleteCurrentScheda() {
-            if (!db.activeSchedaKey || !db.repository[db.activeSchedaKey]) {
-                alert("Nessuna scheda selezionata da eliminare!");
-                return;
-            }
-            if (!confirm(`Sei sicuro di voler eliminare la versione "${db.activeSchedaKey}" dalla repository?`)) {
-                return;
-            }
+        function deleteScheda(key) {
+            if (!confirm(`Vuoi eliminare la scheda "${key}" dalla repository?`)) return;
 
-            delete db.repository[db.activeSchedaKey];
-            const remainingKeys = Object.keys(db.repository);
-            db.activeSchedaKey = remainingKeys.length > 0 ? remainingKeys[0] : null;
+            delete db.repository[key];
+            const keys = Object.keys(db.repository);
+            db.activeSchedaKey = keys.length > 0 ? keys[0] : null;
 
             localStorage.setItem('pwa_repository', JSON.stringify(db.repository));
             if (db.activeSchedaKey) {
@@ -256,42 +251,10 @@
                 localStorage.removeItem('pwa_active_scheda');
             }
 
-            renderRepositorySelect();
-            renderActiveScheda();
+            renderRepository();
         }
 
-        // 4. ANTEPRIMA MINIMALE
-        function renderActiveScheda() {
-            const container = document.getElementById('schedaContainer');
-            const badge = document.getElementById('activeSchedaBadge');
-
-            if (!db.activeSchedaKey || !db.repository[db.activeSchedaKey]) {
-                badge.textContent = "Scheda: Nessuna";
-                container.innerHTML = '<p class="text-slate-500 italic">Nessuna scheda caricata o selezionata.</p>';
-                return;
-            }
-
-            badge.textContent = `Scheda: ${db.activeSchedaKey}`;
-            const data = db.repository[db.activeSchedaKey];
-
-            if (data.length === 0) {
-                container.innerHTML = '<p class="text-slate-500 italic">File vuoto.</p>';
-                return;
-            }
-
-            let html = '<table class="w-full text-left text-xs border-collapse"><thead><tr class="border-b border-slate-700 text-emerald-400">';
-            Object.keys(data[0]).forEach(k => html += `<th class="p-1">${k}</th>`);
-            html += '</tr></thead><tbody>';
-            data.forEach(row => {
-                html += '<tr class="border-b border-slate-800/60 text-slate-300">';
-                Object.values(row).forEach(v => html += `<td class="p-1">${v || '-'}</td>`);
-                html += '</tr>';
-            });
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        // 5. REGISTRAZIONE E STORICO ALLENAMENTI
+        // REGISTRAZIONE E STORICO ALLENAMENTI
         function addWorkoutLog() {
             const date = document.getElementById('logDate').value;
             const scheda = document.getElementById('logSchedaSelect').value || 'Generica';
@@ -309,7 +272,6 @@
                 details: details || 'Allenamento completato'
             });
 
-            // Ordina per data decrescente
             db.workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             localStorage.setItem('pwa_workouts', JSON.stringify(db.workouts));
@@ -320,7 +282,7 @@
         }
 
         function deleteWorkoutLog(id) {
-            if (!confirm("Vuoi davvero eliminare questa registrazione dallo storico?")) return;
+            if (!confirm("Vuoi eliminare questa registrazione dallo storico?")) return;
             db.workouts = db.workouts.filter(w => w.id !== id);
             localStorage.setItem('pwa_workouts', JSON.stringify(db.workouts));
             renderWorkouts();
@@ -332,7 +294,7 @@
             list.innerHTML = '';
 
             if (db.workouts.length === 0) {
-                list.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Nessuna registrazione presente nello storico.</p>';
+                list.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Nessun allenamento ancora registrato.</p>';
                 return;
             }
 
@@ -355,7 +317,7 @@
             });
         }
 
-        // 6. CONTATORI E TEMPLATE EXCEL
+        // CONTATORI E TEMPLATE EXCEL
         function updateDashboardCounters() {
             document.getElementById('totalWorkoutsCount').textContent = db.workouts.length;
 
