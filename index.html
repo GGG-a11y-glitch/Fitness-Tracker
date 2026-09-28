@@ -80,7 +80,10 @@
                     <i class="ph ph-clock-counter-clockwise text-emerald-400 text-lg"></i> Storico Allenamenti
                 </button>
                 <button onclick="navigateTo('obiettivi')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
-                    <i class="ph ph-chart-line-up text-emerald-400 text-lg"></i> Obiettivi e Xiaomi Scale
+                    <i class="ph ph-target text-emerald-400 text-lg"></i> Obiettivi
+                </button>
+                <button onclick="navigateTo('pesate')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
+                    <i class="ph ph-scales text-emerald-400 text-lg"></i> Pesate
                 </button>
             </nav>
         </div>
@@ -110,8 +113,8 @@
                 <p class="text-xs text-slate-400">Ultimo Peso (Xiaomi Scale)</p>
                 <p class="text-xl font-bold text-white" id="homeWeightDisplay">- kg</p>
             </div>
-            <button onclick="navigateTo('obiettivi')" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg">
-                Vedi Analisi
+            <button onclick="navigateTo('pesate')" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg">
+                Vedi Pesate
             </button>
         </div>
 
@@ -197,10 +200,10 @@
         </div>
     </section>
 
-    <!-- SEZIONE 5: OBIETTIVI & XIAOMI SCALE 2 -->
+    <!-- SEZIONE 5: OBIETTIVI -->
     <section id="sec-obiettivi" class="page-section space-y-4">
         
-        <!-- TARGET ALLENAMENTI -->
+        <!-- TARGET & FREQUENZA ALLENAMENTI -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
                 <i class="ph ph-target text-lg"></i> Target & Frequenza Allenamenti
@@ -226,11 +229,26 @@
             </div>
         </div>
 
-        <!-- XIAOMI MI SCALE 2 DATA -->
+        <!-- MOTORINO DI CALCOLO PUNTI -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
+            <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
+                <i class="ph ph-calculator text-lg"></i> Motorino Calcolo Punteggio
+            </h2>
+            <div id="scoreCalculatorBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-2">
+                <p class="text-slate-400 italic text-center">In attesa di definizione della logica di calcolo.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- SEZIONE 6: PESATE -->
+    <section id="sec-pesate" class="page-section space-y-4">
+        
+        <!-- REGISTRAZIONE PESATE (EX XIAOMI MI SCALE 2 DATA) -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <div class="flex justify-between items-center">
                 <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
-                    <i class="ph ph-scales text-lg"></i> Xiaomi Mi Scale 2 Data
+                    <i class="ph ph-scales text-lg"></i> Registrazione Pesate
                 </h2>
                 <div class="flex gap-1.5">
                     <button onclick="downloadScaleTemplate()" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded transition-colors flex items-center gap-1">
@@ -491,7 +509,7 @@
             });
         }
 
-        // XIAOMI MI SCALE 2: IMPORT, SCORE, TEMPLATE, DELETE & EXPORT
+        // REGISTRAZIONE PESATE: IMPORT, SCORE, TEMPLATE, DELETE & EXPORT
         function downloadScaleTemplate() {
             const templateScaleData = [
                 {
