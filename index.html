@@ -3,301 +3,405 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA Fitness & Repository Schede</title>
+    <title>Workout Tracker & Repository Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- SheetJS per Import/Export Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        :root {
-            --bg-primary: #121212;
-            --bg-card: #1e1e1e;
-            --accent: #00e676;
-            --text-main: #ffffff;
-            --text-muted: #b0bec5;
-            --border: #333333;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            margin: 0;
-            padding: 16px;
-        }
-        h1, h2, h3 { color: var(--accent); margin-top: 0; }
-        .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .form-group { margin-bottom: 12px; }
-        label {
-            display: block;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background-color: #2a2a2a;
-            color: #fff;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: var(--accent);
-            color: #000;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 8px;
-            border: none;
-        }
-        button:hover { opacity: 0.9; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 0.85rem;
-        }
-        th, td {
-            border: 1px solid var(--border);
-            padding: 8px;
-            text-align: left;
-        }
-        th { background-color: #2a2a2a; color: var(--accent); }
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .badge {
-            background-color: var(--accent);
-            color: #000;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
     </style>
 </head>
-<body>
+<body class="min-h-screen pb-12 flex flex-col items-center">
 
-    <h1>Fitness & Repository Schede</h1>
+<div class="w-full max-w-md px-4 pt-6 space-y-6">
 
-    <!-- REPOSITORY E SCHEDA ATTIVA -->
-    <div class="card">
-        <h2>Repository Schede Allenamento</h2>
-        
-        <!-- Caricamento Nuova Scheda -->
-        <div class="form-group">
-            <label>1. Assegna un Nome a questa Versione</label>
-            <input type="text" id="schedaVersionName" placeholder="Es. Scheda Forza Q4 2026">
+    <!-- HEADER / DASHBOARD: GIORNI SENZA ALLENAMENTO -->
+    <div class="glass-card rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl"></div>
+        <p class="text-xs uppercase tracking-widest font-semibold text-indigo-400 mb-1">Stato Recupero / Inattività</p>
+        <h1 class="text-2xl font-bold text-slate-200">Giorni Senza Allenamento</h1>
+
+        <div class="my-3 flex items-center justify-center">
+            <span id="daysWithoutWorkout" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-indigo-400">0</span>
         </div>
-        <div class="form-group">
-            <label>2. Seleziona File Excel (.xlsx / .csv)</label>
-            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv">
-        </div>
-        <button onclick="uploadSchedaToRepository()">Carica e Salva in Repository</button>
 
-        <hr style="border-color: var(--border); margin: 20px 0;">
+        <p id="statusBanner" class="text-xs font-medium text-slate-300 mb-5 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50">
+            Calcolo in corso...
+        </p>
+
+        <div class="grid grid-cols-2 gap-2">
+            <button id="openLogModalBtn" class="py-3 px-3 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] transition-all rounded-xl font-bold text-white text-xs shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5">
+                <i class="ph ph-plus-circle text-lg"></i> Nuova Registrazione
+            </button>
+            <button id="exportAllDataBtn" class="py-3 px-3 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] transition-all rounded-xl font-bold text-white text-xs shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-1.5">
+                <i class="ph ph-download-simple text-lg"></i> Esporta XLSX
+            </button>
+        </div>
+    </div>
+
+    <!-- REPOSITORY SCHEDE & TEMPLATE -->
+    <div class="glass-card rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Repository Schede</h3>
+            <button id="downloadTemplateBtn" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1">
+                <i class="ph ph-file-arrow-down text-base"></i> Scarica Template XLSX
+            </button>
+        </div>
+
+        <!-- Form Caricamento Nuova Versione -->
+        <div class="space-y-3 bg-slate-800/40 p-3.5 rounded-xl border border-slate-800">
+            <p class="text-xs font-semibold text-slate-300">Aggiungi Nuova Versione</p>
+            <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Nome Versione Scheda</label>
+                <input type="text" id="schedaVersionName" placeholder="Es. Ipertrofia - Fase A 2026" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg p-2.5 focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-[11px] text-slate-400 mb-1">File Excel (.xlsx, .csv)</label>
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+            </div>
+            <button id="uploadSchedaBtn" class="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold text-slate-200 transition-all">
+                Salva in Repository
+            </button>
+        </div>
 
         <!-- Selettore Scheda Attiva -->
-        <div class="form-group">
-            <label>Seleziona Scheda Attiva dalla Repository</label>
-            <select id="repositorySelect" onchange="switchActiveScheda()"></select>
+        <div class="space-y-2">
+            <label class="block text-xs font-semibold text-slate-300">Scheda Attiva Visualizzata</label>
+            <select id="repositorySelect" class="w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500">
+            </select>
         </div>
 
-        <!-- Visualizzazione Scheda Corrente -->
-        <h3>Scheda In Uso: <span id="currentSchedaName" class="badge">Nessuna</span></h3>
-        <div id="schedaContainer"></div>
+        <!-- Visualizzatore Tabella Scheda -->
+        <div id="schedaDisplayContainer" class="max-h-52 overflow-x-auto overflow-y-auto rounded-xl border border-slate-800">
+        </div>
     </div>
 
-    <!-- REGISTRAZIONE ALLENAMENTI PREGRESSI -->
-    <div class="card">
-        <h2>Registrazione Allenamento</h2>
-        <div class="grid-2">
-            <div class="form-group">
-                <label>Data</label>
-                <input type="date" id="workoutDate">
-            </div>
-            <div class="form-group">
-                <label>Esercizio</label>
-                <input type="text" id="workoutExercise" placeholder="Es. Panca Piana">
-            </div>
+    <!-- STORICO CRONOLOGICO ALLENAMENTI -->
+    <div class="glass-card rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Storico Allenamenti</h3>
+            <i class="ph ph-clock-counter-clockwise text-slate-400 text-lg"></i>
         </div>
-        <div class="grid-2">
-            <div class="form-group">
-                <label>Serie x Ripetizioni</label>
-                <input type="text" id="workoutReps" placeholder="Es. 4x8">
-            </div>
-            <div class="form-group">
-                <label>Carico (kg)</label>
-                <input type="number" id="workoutWeight" placeholder="80">
-            </div>
-        </div>
-        <button onclick="addWorkout()">Salva Allenamento</button>
-
-        <h3>Storico Registrazioni</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Esercizio</th>
-                    <th>Set x Reps</th>
-                    <th>Kg</th>
-                </tr>
-            </thead>
-            <tbody id="workoutHistoryTable"></tbody>
-        </table>
-
-        <button onclick="exportWorkoutsToExcel()" style="margin-top: 15px;">Esporta Storico in XLSX</button>
+        <ul id="historyList" class="space-y-3 max-h-64 overflow-y-auto pr-1">
+        </ul>
     </div>
 
-    <script>
-        // Stato del Database Locale
-        let db = {
-            repository: JSON.parse(localStorage.getItem('pwa_repository')) || {}, // { "NomeVersione": [data] }
-            activeSchedaKey: localStorage.getItem('pwa_active_scheda') || null,
-            workouts: JSON.parse(localStorage.getItem('pwa_workouts')) || []
-        };
+</div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            renderRepositorySelect();
-            renderActiveScheda();
-            renderWorkouts();
-        });
+<!-- MODALE: INSERISCI NUOVO ALLENAMENTO (PRESENTE O PASSATO) -->
+<div id="logModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 hidden z-50">
+    <div class="glass-card bg-slate-900 border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h3 class="text-base font-bold text-slate-100">Registra Sessione</h3>
+            <button id="closeLogModalBtn" class="text-slate-400 hover:text-white"><i class="ph ph-x text-2xl"></i></button>
+        </div>
+        
+        <div class="space-y-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Data Sessione (Passata o Odierna)</label>
+                <input type="date" id="logDate" class="w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl p-3 focus:outline-none focus:border-emerald-500">
+            </div>
 
-        // CARICAMENTO SCHEDA IN REPOSITORY
-        function uploadSchedaToRepository() {
-            const versionName = document.getElementById('schedaVersionName').value.trim();
-            const fileInput = document.getElementById('excelFileInput');
-            const file = fileInput.files[0];
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Scheda Eseguita</label>
+                <select id="logSchedaSelect" class="w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl p-3 focus:outline-none focus:border-emerald-500">
+                </select>
+            </div>
 
-            if (!versionName) {
-                alert("Inserisci un nome identificativo per questa versione della scheda!");
-                return;
-            }
-            if (!file) {
-                alert("Seleziona un file Excel o CSV!");
-                return;
-            }
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Note / Focus Workout (Opzionale)</label>
+                <input type="text" id="logNotes" placeholder="Es. Giorno A - Focus Petto & Bicipiti" class="w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl p-3 focus:outline-none focus:border-emerald-500">
+            </div>
+        </div>
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        <button id="saveLogBtn" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-white text-xs transition-all shadow-lg shadow-emerald-600/30">
+            Salva Allenamento
+        </button>
+    </div>
+</div>
 
-                // Salva nella repository
-                db.repository[versionName] = jsonData;
-                db.activeSchedaKey = versionName;
+<script>
+// KEY STORAGE LOCALE
+const REPO_KEY = 'workout_pwa_repository_v2';
+const LOGS_KEY = 'workout_pwa_logs_v2';
+const ACTIVE_KEY = 'workout_pwa_active_v2';
 
-                localStorage.setItem('pwa_repository', JSON.stringify(db.repository));
-                localStorage.setItem('pwa_active_scheda', db.activeSchedaKey);
+// STATO APPLICAZIONE
+let db = {
+    repository: JSON.parse(localStorage.getItem(REPO_KEY)) || {},
+    logs: JSON.parse(localStorage.getItem(LOGS_KEY)) || [],
+    activeSchedaKey: localStorage.getItem(ACTIVE_KEY) || null
+};
 
-                // Reset Input
-                document.getElementById('schedaVersionName').value = '';
-                fileInput.value = '';
+// ELEMENTI DOM
+const daysWithoutWorkout = document.getElementById('daysWithoutWorkout');
+const statusBanner = document.getElementById('statusBanner');
+const schedaVersionName = document.getElementById('schedaVersionName');
+const excelFileInput = document.getElementById('excelFileInput');
+const uploadSchedaBtn = document.getElementById('uploadSchedaBtn');
+const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+const repositorySelect = document.getElementById('repositorySelect');
+const schedaDisplayContainer = document.getElementById('schedaDisplayContainer');
+const historyList = document.getElementById('historyList');
+const exportAllDataBtn = document.getElementById('exportAllDataBtn');
 
-                renderRepositorySelect();
-                renderActiveScheda();
-            };
-            reader.readAsArrayBuffer(file);
-        }
+// MODALE LOG
+const logModal = document.getElementById('logModal');
+const openLogModalBtn = document.getElementById('openLogModalBtn');
+const closeLogModalBtn = document.getElementById('closeLogModalBtn');
+const logDate = document.getElementById('logDate');
+const logSchedaSelect = document.getElementById('logSchedaSelect');
+const logNotes = document.getElementById('logNotes');
+const saveLogBtn = document.getElementById('saveLogBtn');
 
-        // AGGIORNA DROPDOWN REPOSITORY
-        function renderRepositorySelect() {
-            const select = document.getElementById('repositorySelect');
-            select.innerHTML = '';
+// INIZIALIZZAZIONE
+document.addEventListener('DOMContentLoaded', () => {
+    // Imposta data odierna come default nel form
+    logDate.value = new Date().toISOString().split('T')[0];
+    
+    renderRepositorySelect();
+    renderSchedaTable();
+    renderHistoryAndDays();
+});
 
-            const keys = Object.keys(db.repository);
-            if (keys.length === 0) {
-                select.innerHTML = '<option value="">Nessuna scheda presente in repository</option>';
-                return;
-            }
+// CALCOLO GIORNI SENZA ALLENAMENTO
+function calculateDaysWithoutWorkout() {
+    if (db.logs.length === 0) {
+        daysWithoutWorkout.textContent = '-';
+        statusBanner.textContent = 'Nessun allenamento ancora registrato nello storico.';
+        return;
+    }
 
-            keys.forEach(key => {
-                const option = document.createElement('option');
-                option.value = key;
-                option.textContent = key;
-                if (key === db.activeSchedaKey) option.selected = true;
-                select.appendChild(option);
-            });
-        }
+    // Ordina i log per data decrescente
+    const sortedLogs = [...db.logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const lastDate = new Date(sortedLogs[0].date);
+    const today = new Date();
+    
+    // Normalizza ore
+    lastDate.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
 
-        // CAMBIA SCHEDA ATTIVA
-        function switchActiveScheda() {
-            const select = document.getElementById('repositorySelect');
-            if (!select.value) return;
+    const diffTime = today - lastDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-            db.activeSchedaKey = select.value;
-            localStorage.setItem('pwa_active_scheda', db.activeSchedaKey);
-            renderActiveScheda();
-        }
+    daysWithoutWorkout.textContent = diffDays;
 
-        // RENDERING SCHEDA ATTIVA IN TABELLA
-        function renderActiveScheda() {
-            const container = document.getElementById('schedaContainer');
-            const label = document.getElementById('currentSchedaName');
+    if (diffDays === 0) {
+        statusBanner.textContent = 'Ottimo lavoro! Ti sei allenato oggi.';
+        statusBanner.className = 'text-xs font-medium text-emerald-300 mb-5 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20';
+    } else if (diffDays === 1) {
+        statusBanner.textContent = 'Ieri giorno di riposo/workout. Pronti per oggi?';
+        statusBanner.className = 'text-xs font-medium text-indigo-300 mb-5 p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20';
+    } else if (diffDays >= 3) {
+        statusBanner.textContent = `Attenzione: sei fermo da ${diffDays} giorni!`;
+        statusBanner.className = 'text-xs font-medium text-rose-300 mb-5 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20';
+    } else {
+        statusBanner.textContent = `Ultimo allenamento effettuato ${diffDays} giorni fa.`;
+        statusBanner.className = 'text-xs font-medium text-slate-300 mb-5 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50';
+    }
+}
 
-            if (!db.activeSchedaKey || !db.repository[db.activeSchedaKey]) {
-                label.textContent = "Nessuna";
-                container.innerHTML = '<p style="color:var(--text-muted)">Nessuna scheda attiva. Carica una nuova versione o selezionala dalla repository.</p>';
-                return;
-            }
+// CARICAMENTO E PARSING FILE EXCEL
+uploadSchedaBtn.addEventListener('click', () => {
+    const versionName = schedaVersionName.value.trim();
+    const file = excelFileInput.files[0];
 
-            label.textContent = db.activeSchedaKey;
-            const data = db.repository[db.activeSchedaKey];
+    if (!versionName) {
+        alert('Inserisci un nome identificativo per la scheda.');
+        return;
+    }
+    if (!file) {
+        alert('Seleziona un file Excel o CSV.');
+        return;
+    }
 
-            if (data.length === 0) {
-                container.innerHTML = '<p style="color:var(--text-muted)">La scheda selezionata è vuota.</p>';
-                return;
-            }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-            let html = '<table><thead><tr>';
-            Object.keys(data[0]).forEach(key => html += `<th>${key}</th>`);
-            html += '</tr></thead><tbody>';
-            data.forEach(row => {
-                html += '<tr>';
-                Object.values(row).forEach(val => html += `<td>${val}</td>`);
-                html += '</tr>';
-            });
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
+        db.repository[versionName] = jsonData;
+        db.activeSchedaKey = versionName;
 
-        // REGISTRAZIONE E STORICO ALLENAMENTI
-        function addWorkout() {
-            const date = document.getElementById('workoutDate').value;
-            const exercise = document.getElementById('workoutExercise').value;
-            const reps = document.getElementById('workoutReps').value;
-            const weight = document.getElementById('workoutWeight').value;
+        localStorage.setItem(REPO_KEY, JSON.stringify(db.repository));
+        localStorage.setItem(ACTIVE_KEY, db.activeSchedaKey);
 
-            if (!date || !exercise) return;
+        schedaVersionName.value = '';
+        excelFileInput.value = '';
 
-            db.workouts.push({ date, exercise, reps, weight, schedaVersione: db.activeSchedaKey || 'N/D' });
-            localStorage.setItem('pwa_workouts', JSON.stringify(db.workouts));
-            renderWorkouts();
-        }
+        renderRepositorySelect();
+        renderSchedaTable();
+    };
+    reader.readAsArrayBuffer(file);
+});
 
-        function renderWorkouts() {
-            const tbody = document.getElementById('workoutHistoryTable');
-            tbody.innerHTML = '';
-            db.workouts.forEach(w => {
-                tbody.innerHTML += `<tr><td>${w.date}</td><td>${w.exercise}</td><td>${w.reps}</td><td>${w.weight} kg</td></tr>`;
-            });
-        }
+// SCARICA TEMPLATE EXCEL PRONTO ALL'USO
+downloadTemplateBtn.addEventListener('click', () => {
+    const templateData = [
+        { Giorno: "Giorno A", Esercizio: "Panca Piana", Serie: 4, Ripetizioni: "8", Recupero: "90s", Note: "Focus fermo al petto" },
+        { Giorno: "Giorno A", Esercizio: "Spinte Manubri 30°", Serie: 3, Ripetizioni: "10", Recupero: "60s", Note: "Controllo eccentrica" },
+        { Giorno: "Giorno B", Esercizio: "Squat Bilanciere", Serie: 4, Ripetizioni: "6", Recupero: "120s", Note: "RPE 8" },
+        { Giorno: "Giorno B", Esercizio: "Affondi Camminati", Serie: 3, Ripetizioni: "12", Recupero: "60s", Note: "Carico medio" }
+    ];
 
-        function exportWorkoutsToExcel() {
-            if (db.workouts.length === 0) return;
-            const worksheet = XLSX.utils.json_to_sheet(db.workouts);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Storico Allenamenti");
-            XLSX.writeFile(workbook, "Storico_Allenamenti.xlsx");
-        }
-    </script>
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template_Scheda");
+    XLSX.writeFile(wb, "Template_Scheda_Allenamento.xlsx");
+});
+
+// RENDERING SELECT REPOSITORY
+function renderRepositorySelect() {
+    repositorySelect.innerHTML = '';
+    logSchedaSelect.innerHTML = '';
+
+    const keys = Object.keys(db.repository);
+    if (keys.length === 0) {
+        repositorySelect.innerHTML = '<option value="">Nessuna scheda caricata</option>';
+        logSchedaSelect.innerHTML = '<option value="Scheda Generica">Nessuna Scheda (Allenamento Libero)</option>';
+        return;
+    }
+
+    keys.forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = key;
+        if (key === db.activeSchedaKey) opt.selected = true;
+        repositorySelect.appendChild(opt);
+
+        const logOpt = document.createElement('option');
+        logOpt.value = key;
+        logOpt.textContent = key;
+        logSchedaSelect.appendChild(logOpt);
+    });
+}
+
+repositorySelect.addEventListener('change', (e) => {
+    db.activeSchedaKey = e.target.value;
+    localStorage.setItem(ACTIVE_KEY, db.activeSchedaKey);
+    renderSchedaTable();
+});
+
+// RENDERING TABELLA SCHEDA ATTIVA
+function renderSchedaTable() {
+    schedaDisplayContainer.innerHTML = '';
+    
+    if (!db.activeSchedaKey || !db.repository[db.activeSchedaKey]) {
+        schedaDisplayContainer.innerHTML = '<p class="text-xs text-slate-500 p-4 text-center">Nessuna scheda selezionata o archivio vuoto.</p>';
+        return;
+    }
+
+    const data = db.repository[db.activeSchedaKey];
+    if (data.length === 0) {
+        schedaDisplayContainer.innerHTML = '<p class="text-xs text-slate-500 p-4 text-center">Scheda vuota.</p>';
+        return;
+    }
+
+    let html = '<table class="w-full text-left text-xs text-slate-300">thead class="bg-slate-800 text-indigo-400 font-semibold border-b border-slate-700"><tr>';
+    Object.keys(data[0]).forEach(k => html += `<th class="p-2.5 whitespace-nowrap">${k}</th>`);
+    html += '</tr></thead><tbody>';
+
+    data.forEach(row => {
+        html += '<tr class="border-b border-slate-800/60 hover:bg-slate-800/30">';
+        Object.values(row).forEach(v => html += `<td class="p-2.5 whitespace-nowrap">${v}</td>`);
+        html += '</tr>';
+    });
+
+    html += 'tbody></table>';
+    schedaDisplayContainer.innerHTML = html;
+}
+
+// GESTIONE MODALE E NUOVI LOG
+openLogModalBtn.addEventListener('click', () => logModal.classList.remove('hidden'));
+closeLogModalBtn.addEventListener('click', () => logModal.classList.add('hidden'));
+
+saveLogBtn.addEventListener('click', () => {
+    const dateVal = logDate.value;
+    const schedaVal = logSchedaSelect.value || 'Scheda Generica';
+    const notesVal = logNotes.value.trim();
+
+    if (!dateVal) {
+        alert('Seleziona una data valida.');
+        return;
+    }
+
+    const newLog = {
+        id: Date.now(),
+        date: dateVal,
+        schedaName: schedaVal,
+        notes: notesVal || 'Allenamento Completato'
+    };
+
+    db.logs.push(newLog);
+    localStorage.setItem(LOGS_KEY, JSON.stringify(db.logs));
+
+    logNotes.value = '';
+    logModal.classList.add('hidden');
+
+    renderHistoryAndDays();
+});
+
+// DEL LOG
+function deleteLogItem(id) {
+    db.logs = db.logs.filter(item => item.id !== id);
+    localStorage.setItem(LOGS_KEY, JSON.stringify(db.logs));
+    renderHistoryAndDays();
+}
+
+// RENDERING STORICO & RICALCOLO
+function renderHistoryAndDays() {
+    historyList.innerHTML = '';
+    calculateDaysWithoutWorkout();
+
+    if (db.logs.length === 0) {
+        historyList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Nessun allenamento registrato.</li>';
+        return;
+    }
+
+    // Ordina decrescente per data
+    const sorted = [...db.logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    sorted.forEach(log => {
+        const li = document.createElement('li');
+        li.className = 'flex justify-between items-center p-3 rounded-xl bg-slate-800/40 border border-slate-800';
+        li.innerHTML = `
+            <div>
+                <p class="text-xs font-bold text-slate-200">${log.schedaName}</p>
+                <p class="text-[10px] text-indigo-400 font-medium">${log.notes}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">${new Date(log.date).toLocaleDateString('it-IT', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</p>
+            </div>
+            <button onclick="deleteLogItem(${log.id})" class="text-slate-500 hover:text-rose-400 p-1.5 transition-colors">
+                <i class="ph ph-trash text-lg"></i>
+            </button>
+        `;
+        historyList.appendChild(li);
+    });
+}
+
+// ESPORTAZIONE COMPLETA REGISTRAZIONI ED ARCHIVIO SU EXCEL
+exportAllDataBtn.addEventListener('click', () => {
+    if (db.logs.length === 0) {
+        alert('Nessun dato di allenamento da esportare.');
+        return;
+    }
+
+    const exportFormatted = db.logs.map(l => ({
+        Data: l.date,
+        Scheda_Eseguita: l.schedaName,
+        Note: l.notes
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportFormatted);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Storico_Allenamenti");
+    XLSX.writeFile(wb, `Storico_Allenamenti_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+});
+</script>
 </body>
 </html>
