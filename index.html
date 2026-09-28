@@ -377,7 +377,7 @@
 
     </section>
 
-    <!-- SCRIPT LOGICA COMPLETA APPLICAZIONE -->
+    <!-- SCRIPT LOGICA APPLICAZIONE -->
     <script>
         let db = {
             profile: JSON.parse(localStorage.getItem('pwa_user_profile')) || {
@@ -410,7 +410,6 @@
             updateDashboardAndAnalytics();
         });
 
-        // GESTIONE PROFILO UTENTE
         function loadUserProfile() {
             document.getElementById('profileName').value = db.profile.name || '';
             document.getElementById('profileBirthDate').value = db.profile.birthDate || '';
@@ -447,7 +446,6 @@
             renderMeasuresAnalysis();
         }
 
-        // NAVIGAZIONE
         function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -473,7 +471,6 @@
             if (target) target.classList.add('active');
         }
 
-        // QUICK LOG HOMEPAGE LEAN
         function addQuickWorkoutLog() {
             const date = document.getElementById('quickLogDate').value;
             const scheda = document.getElementById('quickLogSchedaSelect').value || 'Generica';
@@ -497,7 +494,6 @@
             alert("Allenamento salvato con successo!");
         }
 
-        // REPOSITORY SCHEDE
         function uploadSchedaToRepository() {
             const versionName = document.getElementById('schedaVersionName').value.trim();
             const fileInput = document.getElementById('excelFileInput');
@@ -606,7 +602,6 @@
             updateDashboardAndAnalytics();
         }
 
-        // WORKOUT LOGS
         function deleteWorkoutLog(id) {
             if (!confirm("Eliminare la sessione selezionata?")) return;
             db.workouts = db.workouts.filter(w => w.id !== id);
@@ -643,7 +638,6 @@
             });
         }
 
-        // PESATE
         function downloadScaleTemplate() {
             const templateScaleData = [{
                 Data: "2026-09-28", Peso: 78.5, IMC: 22.1, MassaGrassa: 15.2, Muscoli: 62.4, Acqua: 58.5, GrassoViscerale: 4, MetabolismoBasale: 1750
@@ -698,7 +692,6 @@
             XLSX.writeFile(workbook, `Pesate_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
-        // MISURAZIONI
         function downloadMeasuresTemplate() {
             const templateMeasuresData = [{
                 Data: "2026-09-28", Torace: 104, BicipiteDx: 37, BicipiteSx: 36.5, PolpaccioDx: 38, PolpaccioSx: 38, QuadricipiteDx: 58, QuadricipiteSx: 57.5, Vita: 82, Spalle: 48
@@ -753,7 +746,6 @@
             XLSX.writeFile(workbook, `Misurazioni_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
-        // MOTORINI DI CALCOLO
         function calculateAdvancedFitnessScore(latest) {
             if (!latest) return { score: 0, imcCalc: "-", diagnosisWeight: "N/D" };
             let score = 0;
@@ -939,12 +931,10 @@
             updateDashboardAndAnalytics();
         }
 
-        // AGGIORNAMENTO UNIFICATO ANALISI, OBIETTIVI E HOMEPAGE LEAN
         function updateDashboardAndAnalytics() {
             const scaleEval = db.scaleData.length ? calculateAdvancedFitnessScore(db.scaleData[0]) : { score: 0, diagnosisWeight: "Dati assenti" };
             const measEval = db.measuresData.length ? calculateMeasuresScore(db.measuresData[0]) : { score: 0, diagnosisMeasures: "Dati assenti" };
 
-            // 1. SCORE GLOBALE E LIVELLO
             let globalScore = 0;
             if (db.scaleData.length && db.measuresData.length) globalScore = Math.round((scaleEval.score + measEval.score) / 2);
             else if (db.scaleData.length) globalScore = scaleEval.score;
@@ -961,7 +951,6 @@
             const latestW = db.scaleData.length ? (db.scaleData[0].Peso || db.scaleData[0].peso || '--') : '--';
             document.getElementById('leanWeightTrend').textContent = `Peso Attuale: ${latestW} kg`;
 
-            // 2. COUNTER GIORNI INATTIVITA' & TARGET
             const daysElem = document.getElementById('leanDaysInactive');
             if (db.workouts.length > 0) {
                 const latestWDate = new Date(db.workouts[0].date);
@@ -990,7 +979,6 @@
             document.getElementById('leanTargetProgress').textContent = missing > 0 ? `Mancano ${missing} sessioni` : "Target Raggiunto! 🎉";
             document.getElementById('leanProgressBar').style.width = `${pct}%`;
 
-            // 3. STATISTICA SATURAZIONE SCHEDA & CONTEGGIO UTILIZZO
             const currentSchedaKey = db.activeSchedaKey || 'Nessuna';
             const countSchedaUsage = db.workouts.filter(w => w.scheda === currentSchedaKey).length;
 
@@ -1019,7 +1007,6 @@
                 `;
             }
 
-            // 4. TIMING SUGGERITO PROSSIMA PESATA E MISURAZIONE
             const weightDateElem = document.getElementById('nextWeightDateSuggest');
             const measureDateElem = document.getElementById('nextMeasureDateSuggest');
 
@@ -1041,7 +1028,6 @@
                 measureDateElem.textContent = "Disponibile subito";
             }
 
-            // 5. PROIEZIONE OBIETTIVI RAGGIUNGIBILI CON ALLENAMENTO
             const projBox = document.getElementById('workoutProjectionBox');
             if (projBox) {
                 projBox.innerHTML = `
@@ -1052,7 +1038,6 @@
                 `;
             }
 
-            // 6. MOTORINO INTEGRATO OBIETTIVI
             const scoreBox = document.getElementById('scoreCalculatorBox');
             const diagBox = document.getElementById('diagnosisContent');
             if (scoreBox && diagBox) {
