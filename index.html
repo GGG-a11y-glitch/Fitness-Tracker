@@ -86,7 +86,7 @@
                     <i class="ph ph-target text-emerald-400 text-lg"></i> Obiettivi
                 </button>
                 <button onclick="navigateTo('pesate')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
-                    <i class="ph ph-scales text-emerald-400 text-lg"></i> Pesate
+                    <i class="ph ph-scales text-emerald-400 text-lg"></i> Pesate e Misurazioni
                 </button>
             </nav>
         </div>
@@ -117,7 +117,7 @@
                 <p class="text-xl font-bold text-white" id="homeWeightDisplay">- kg</p>
             </div>
             <button onclick="navigateTo('pesate')" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg">
-                Vedi Pesate
+                Vedi Dati
             </button>
         </div>
 
@@ -268,30 +268,30 @@
             </div>
         </div>
 
-        <!-- MOTORINO DI CALCOLO PUNTI -->
+        <!-- MOTORINO DI CALCOLO PUNTEGGIO GLOBALE (Bilancia + Circonferenze + Profilo) -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
-                <i class="ph ph-calculator text-lg"></i> Motorino Calcolo Punteggio
+                <i class="ph ph-calculator text-lg"></i> Motorino Calcolo Punteggio Integrato
             </h2>
             <div id="scoreCalculatorBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-2">
-                <p class="text-slate-400 italic text-center">In attesa di dati pesata per il calcolo avanzato.</p>
+                <p class="text-slate-400 italic text-center">In attesa di dati per il calcolo avanzato.</p>
             </div>
         </div>
 
     </section>
 
-    <!-- SEZIONE 7: PESATE -->
+    <!-- SEZIONE 7: PESATE E MISURAZIONI -->
     <section id="sec-pesate" class="page-section space-y-4">
         
         <!-- REGISTRAZIONE PESATE -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <div class="flex justify-between items-center">
                 <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
-                    <i class="ph ph-scales text-lg"></i> Registrazione Pesate
+                    <i class="ph ph-scales text-lg"></i> 1. Registro Pesate (Bilancia)
                 </h2>
                 <div class="flex gap-1.5">
                     <button onclick="downloadScaleTemplate()" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded transition-colors flex items-center gap-1">
-                        <i class="ph ph-download-simple"></i> Template .xlsx
+                        <i class="ph ph-download-simple"></i> Template
                     </button>
                     <button onclick="exportScaleData()" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded transition-colors flex items-center gap-1">
                         <i class="ph ph-export"></i> Esporta
@@ -302,27 +302,75 @@
                 </div>
             </div>
 
-            <!-- Upload File -->
             <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/60 space-y-2">
                 <label class="block text-xs text-slate-300 font-medium">Carica File Pesate (.xlsx / .csv)</label>
                 <input type="file" id="scaleFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600">
                 <button onclick="uploadScaleData()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1">
-                    <i class="ph ph-upload-simple"></i> Elabora e Analizza Dati
+                    <i class="ph ph-upload-simple"></i> Elabora Pesate
                 </button>
             </div>
 
-            <!-- Analisi Stato Attuale (Sola Ultima Pesata) -->
+            <!-- Elenco Storico Pesate -->
+            <div class="space-y-2 pt-2 border-t border-slate-700/60">
+                <label class="block text-xs text-slate-400 font-medium">Storico Pesate Salvate</label>
+                <div id="scaleHistoryList" class="space-y-1.5 max-h-40 overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+
+        <!-- REGISTRAZIONE MISURAZIONI ANTROPOMETRICHE -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
+                    <i class="ph ph-ruler text-lg"></i> 2. Misure Antropometriche
+                </h2>
+                <div class="flex gap-1.5">
+                    <button onclick="downloadMeasuresTemplate()" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded transition-colors flex items-center gap-1">
+                        <i class="ph ph-download-simple"></i> Template
+                    </button>
+                    <button onclick="exportMeasuresData()" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded transition-colors flex items-center gap-1">
+                        <i class="ph ph-export"></i> Esporta
+                    </button>
+                    <button onclick="clearAllMeasuresData()" class="text-[10px] bg-red-900/50 hover:bg-red-800 text-red-200 border border-red-700 px-2 py-1 rounded transition-colors flex items-center gap-1">
+                        <i class="ph ph-trash"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/60 space-y-2">
+                <label class="block text-xs text-slate-300 font-medium">Carica File Misurazioni (.xlsx / .csv)</label>
+                <input type="file" id="measuresFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600">
+                <button onclick="uploadMeasuresData()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1">
+                    <i class="ph ph-upload-simple"></i> Elabora Misurazioni
+                </button>
+            </div>
+
+            <!-- Elenco Storico Misurazioni -->
+            <div class="space-y-2 pt-2 border-t border-slate-700/60">
+                <label class="block text-xs text-slate-400 font-medium">Storico Misurazioni Salvate</label>
+                <div id="measuresHistoryList" class="space-y-1.5 max-h-40 overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+
+        <!-- VALUTAZIONI DISTINTE STATO ATTUALE (2 BOX SEPARATI) -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-4">
+            <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
+                <i class="ph ph-chart-bar text-lg"></i> Valutazione Distinta Stato Attuale
+            </h2>
+
+            <!-- VALUTAZIONE 1: PARAMETRI DI PESO -->
             <div class="space-y-2">
-                <label class="block text-xs text-slate-400">Analisi Stato Attuale (Ultima Pesata)</label>
+                <label class="block text-xs text-slate-400 font-semibold">Valutazione 1: Parametri Peso & Composizione Corporea</label>
                 <div id="scaleAnalysisBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-3">
                     <p class="text-slate-500 italic text-center">Nessun dato pesata caricato.</p>
                 </div>
             </div>
 
-            <!-- Elenco Storico Pesate -->
-            <div class="space-y-2 pt-2 border-t border-slate-700/60">
-                <label class="block text-xs text-slate-400 font-medium">Gestione Registrazioni Salvate</label>
-                <div id="scaleHistoryList" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
+            <!-- VALUTAZIONE 2: PARAMETRI DI CIRCONFERENZE -->
+            <div class="space-y-2">
+                <label class="block text-xs text-slate-400 font-semibold">Valutazione 2: Parametri Circonferenze & Proporzioni</label>
+                <div id="measuresAnalysisBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-3">
+                    <p class="text-slate-500 italic text-center">Nessun dato misurazione caricato.</p>
+                </div>
             </div>
         </div>
 
@@ -341,6 +389,7 @@
             activeSchedaKey: localStorage.getItem('pwa_active_scheda') || null,
             workouts: JSON.parse(localStorage.getItem('pwa_workouts')) || [],
             scaleData: JSON.parse(localStorage.getItem('pwa_scaledata')) || [],
+            measuresData: JSON.parse(localStorage.getItem('pwa_measuresdata')) || [],
             targetMonth: parseInt(localStorage.getItem('pwa_target_month')) || 12
         };
 
@@ -353,6 +402,7 @@
             renderRepository();
             renderWorkouts();
             renderScaleAnalysis();
+            renderMeasuresAnalysis();
             updateDashboardCounters();
         });
 
@@ -369,7 +419,7 @@
             const birthVal = document.getElementById('profileBirthDate').value;
             if (!birthVal) {
                 document.getElementById('profileAge').value = '-';
-                return 30; // fallback standard
+                return 30;
             }
             const birthDate = new Date(birthVal);
             const today = new Date();
@@ -391,7 +441,8 @@
             };
             localStorage.setItem('pwa_user_profile', JSON.stringify(db.profile));
             alert("Profilo aggiornato con successo!");
-            renderScaleAnalysis(); // Ricalcola con i nuovi dati profilo
+            renderScaleAnalysis();
+            renderMeasuresAnalysis();
         }
 
         // NAVIGAZIONE MENU
@@ -595,18 +646,16 @@
 
         // REGISTRAZIONE PESATE
         function downloadScaleTemplate() {
-            const templateScaleData = [
-                {
-                    Data: "2026-09-28",
-                    Peso: 78.5,
-                    IMC: 22.1,
-                    MassaGrassa: 15.2,
-                    Muscoli: 62.4,
-                    Acqua: 58.5,
-                    GrassoViscerale: 4,
-                    MetabolismoBasale: 1750
-                }
-            ];
+            const templateScaleData = [{
+                Data: "2026-09-28",
+                Peso: 78.5,
+                IMC: 22.1,
+                MassaGrassa: 15.2,
+                Muscoli: 62.4,
+                Acqua: 58.5,
+                GrassoViscerale: 4,
+                MetabolismoBasale: 1750
+            }];
             const worksheet = XLSX.utils.json_to_sheet(templateScaleData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Template_Xiaomi_Scale");
@@ -616,30 +665,20 @@
         function uploadScaleData() {
             const fileInput = document.getElementById('scaleFileInput');
             const file = fileInput.files[0];
-
-            if (!file) {
-                alert("Seleziona il file Excel delle pesate!");
-                return;
-            }
+            if (!file) return alert("Seleziona il file Excel delle pesate!");
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-                const incoming = jsonData.map((item, idx) => ({
-                    id: Date.now() + idx,
-                    ...item
-                }));
-
+                const incoming = jsonData.map((item, idx) => ({ id: Date.now() + idx, ...item }));
                 db.scaleData = [...incoming, ...db.scaleData];
-                db.scaleData.sort((a, b) => new Date(b.Data || b.data || 0) - new Date(b.Data || b.data || 0));
+                db.scaleData.sort((a, b) => new Date(b.Data || b.data || 0) - new Date(a.Data || a.data || 0));
 
                 localStorage.setItem('pwa_scaledata', JSON.stringify(db.scaleData));
                 fileInput.value = '';
-
                 renderScaleAnalysis();
             };
             reader.readAsArrayBuffer(file);
@@ -660,97 +699,165 @@
         }
 
         function exportScaleData() {
-            if (!db.scaleData || db.scaleData.length === 0) {
-                alert("Nessuna pesata disponibile da esportare.");
-                return;
-            }
+            if (!db.scaleData.length) return alert("Nessuna pesata disponibile da esportare.");
             const worksheet = XLSX.utils.json_to_sheet(db.scaleData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Pesate_Export");
             XLSX.writeFile(workbook, `Xiaomi_Scale_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
-        // MOTORINO DI CALCOLO RAGIONATO (Xiaomi Mi Scale 2 Standards + Profilo + Analisi)
+        // REGISTRAZIONE MISURAZIONI
+        function downloadMeasuresTemplate() {
+            const templateMeasuresData = [{
+                Data: "2026-09-28",
+                Torace: 104,
+                BicipiteDx: 37,
+                BicipiteSx: 36.5,
+                PolpaccioDx: 38,
+                PolpaccioSx: 38,
+                QuadricipiteDx: 58,
+                QuadricipiteSx: 57.5,
+                Vita: 82,
+                Spalle: 48
+            }];
+            const worksheet = XLSX.utils.json_to_sheet(templateMeasuresData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Template_Misurazioni");
+            XLSX.writeFile(workbook, "Template_Misurazioni_Antropometriche.xlsx");
+        }
+
+        function uploadMeasuresData() {
+            const fileInput = document.getElementById('measuresFileInput');
+            const file = fileInput.files[0];
+            if (!file) return alert("Seleziona il file Excel delle misurazioni!");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+                const incoming = jsonData.map((item, idx) => ({ id: Date.now() + idx, ...item }));
+                db.measuresData = [...incoming, ...db.measuresData];
+                db.measuresData.sort((a, b) => new Date(b.Data || b.data || 0) - new Date(a.Data || a.data || 0));
+
+                localStorage.setItem('pwa_measuresdata', JSON.stringify(db.measuresData));
+                fileInput.value = '';
+                renderMeasuresAnalysis();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function deleteMeasuresData(id) {
+            if (!confirm("Eliminare la singola misurazione selezionata?")) return;
+            db.measuresData = db.measuresData.filter(item => item.id !== id);
+            localStorage.setItem('pwa_measuresdata', JSON.stringify(db.measuresData));
+            renderMeasuresAnalysis();
+        }
+
+        function clearAllMeasuresData() {
+            if (!confirm("Sei sicuro di voler eliminare l'INTERO storico misurazioni?")) return;
+            db.measuresData = [];
+            localStorage.removeItem('pwa_measuresdata');
+            renderMeasuresAnalysis();
+        }
+
+        function exportMeasuresData() {
+            if (!db.measuresData.length) return alert("Nessuna misurazione disponibile da esportare.");
+            const worksheet = XLSX.utils.json_to_sheet(db.measuresData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Misurazioni_Export");
+            XLSX.writeFile(workbook, `Misurazioni_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        // MOTORINI DI CALCOLO VALUTAZIONI (1-100)
         function calculateAdvancedFitnessScore(latest) {
-            if (!latest) return { score: 0, details: [] };
-
+            if (!latest) return { score: 0, imcCalc: "-" };
             let score = 0;
-            let breakdown = [];
-
-            const heightCm = db.profile.height || 191;
-            const heightM = heightCm / 100;
+            const heightM = (db.profile.height || 191) / 100;
             const weight = parseFloat(latest.Peso || latest.peso || 0);
 
-            // 1. Valutazione IMC / BMI basata su altezza profilo
-            let imc = parseFloat(latest.IMC || latest.imc || 0);
-            if (!imc && heightM > 0 && weight > 0) {
-                imc = weight / (heightM * heightM);
-            }
+            let imc = parseFloat(latest.IMC || latest.imc || (heightM > 0 ? weight / (heightM * heightM) : 0));
+            if (imc >= 18.5 && imc <= 24.9) score += 25;
+            else if (imc >= 25.0 && imc <= 28.0) score += 18;
+            else if (imc > 0) score += 10;
 
-            if (imc >= 18.5 && imc <= 24.9) {
-                score += 25;
-                breakdown.text = "BMI ottimale";
-            } else if (imc >= 25.0 && imc <= 28.0) {
-                score += 18;
-            } else if (imc > 0) {
-                score += 10;
-            }
-
-            // 2. Valutazione Grasso Viscerale (Standard Xiaomi Mi Scale 2: 1-9 Ottimale/Normale, 10-14 Alto, 15+ Molto Alto)
             const visceral = parseFloat(latest.GrassoViscerale || latest.grasso_viscerale || 0);
-            if (visceral > 0 && visceral <= 9) {
-                score += 25;
-            } else if (visceral >= 10 && visceral <= 14) {
-                score += 15;
-            } else if (visceral >= 15) {
-                score += 5;
-            } else {
-                score += 20; // Default se assente
-            }
+            if (visceral > 0 && visceral <= 9) score += 25;
+            else if (visceral >= 10 && visceral <= 14) score += 15;
+            else score += 20;
 
-            // 3. Valutazione Massa Grassa % (Standard Uomo Atletico/Normale: 11-20%)
             const fatPct = parseFloat(latest.MassaGrassa || latest.massa_grassa || 0);
-            if (fatPct >= 11 && fatPct <= 18) {
-                score += 25;
-            } else if (fatPct > 18 && fatPct <= 23) {
-                score += 18;
-            } else if (fatPct > 0 && fatPct < 11) {
-                score += 20; // Magro ma ok
-            } else if (fatPct > 23) {
-                score += 10;
-            } else {
-                score += 20;
-            }
+            if (fatPct >= 11 && fatPct <= 18) score += 25;
+            else if (fatPct > 18 && fatPct <= 23) score += 18;
+            else score += 20;
 
-            // 4. Valutazione Idratazione % (Standard Xiaomi: 55%-65% per uomo)
             const waterPct = parseFloat(latest.Acqua || latest.acqua || 0);
-            if (waterPct >= 55 && waterPct <= 65) {
-                score += 25;
-            } else if (waterPct >= 50 && waterPct < 55) {
-                score += 18;
-            } else if (waterPct > 0) {
-                score += 10;
-            } else {
-                score += 20;
-            }
+            if (waterPct >= 55 && waterPct <= 65) score += 25;
+            else if (waterPct >= 50 && waterPct < 55) score += 18;
+            else score += 20;
 
-            const finalScore = Math.min(100, Math.max(1, Math.round(score)));
-            return { score: finalScore, imcCalc: imc.toFixed(1) };
+            return { score: Math.min(100, Math.max(1, Math.round(score))), imcCalc: imc.toFixed(1) };
+        }
+
+        function calculateMeasuresScore(latest) {
+            if (!latest) return { score: 0, whtr: "-", symmetryArm: "-", symmetryLeg: "-" };
+            let score = 0;
+            const heightCm = db.profile.height || 191;
+
+            // 1. Rapporto Vita/Altezza (Waist-to-Height Ratio - WHtR): Ottimale tra 0.42 e 0.50
+            const waist = parseFloat(latest.Vita || latest.vita || 0);
+            const whtr = heightCm > 0 && waist > 0 ? (waist / heightCm) : 0;
+            if (whtr >= 0.42 && whtr <= 0.50) score += 35;
+            else if (whtr > 0.50 && whtr <= 0.55) score += 25;
+            else if (whtr > 0) score += 15;
+
+            // 2. Simmetria Bicipiti (Differenza Sx/Dx <= 1 cm)
+            const bicDx = parseFloat(latest.BicipiteDx || latest.bicipite_dx || 0);
+            const bicSx = parseFloat(latest.BicipiteSx || latest.bicipite_sx || 0);
+            const armDiff = Math.abs(bicDx - bicSx);
+            if (bicDx > 0 && bicSx > 0) {
+                if (armDiff <= 0.5) score += 20;
+                else if (armDiff <= 1.2) score += 15;
+                else score += 8;
+            } else score += 15;
+
+            // 3. Simmetria Quadricipiti / Polpacci
+            const quadDx = parseFloat(latest.QuadricipiteDx || latest.quadricipite_dx || 0);
+            const quadSx = parseFloat(latest.QuadricipiteSx || latest.quadricipite_sx || 0);
+            const legDiff = Math.abs(quadDx - quadSx);
+            if (quadDx > 0 && quadSx > 0) {
+                if (legDiff <= 0.8) score += 20;
+                else if (legDiff <= 1.5) score += 15;
+                else score += 8;
+            } else score += 15;
+
+            // 4. Struttura Spalle/Vita (Indice V-Taper: Spalle / Vita >= 1.3)
+            const shoulders = parseFloat(latest.Spalle || latest.spalle || 0);
+            const vTaper = waist > 0 && shoulders > 0 ? (shoulders / waist) : 0;
+            if (vTaper >= 0.55) score += 25; // Spalle intese come larghezza ossea/biacromiale
+            else if (vTaper > 0) score += 18;
+            else score += 15;
+
+            return {
+                score: Math.min(100, Math.max(1, Math.round(score))),
+                whtr: whtr.toFixed(2),
+                symmetryArm: armDiff.toFixed(1),
+                symmetryLeg: legDiff.toFixed(1)
+            };
         }
 
         function renderScaleAnalysis() {
             const box = document.getElementById('scaleAnalysisBox');
-            const scoreBox = document.getElementById('scoreCalculatorBox');
             const homeDisplay = document.getElementById('homeWeightDisplay');
             const historyList = document.getElementById('scaleHistoryList');
-
             historyList.innerHTML = '';
 
-            if (!db.scaleData || db.scaleData.length === 0) {
+            if (!db.scaleData.length) {
                 box.innerHTML = '<p class="text-slate-500 italic text-center">Nessun dato pesata caricato.</p>';
-                if (scoreBox) scoreBox.innerHTML = '<p class="text-slate-500 italic text-center">Nessun dato pesata caricato.</p>';
                 homeDisplay.textContent = '- kg';
                 historyList.innerHTML = '<p class="text-xs text-slate-500 italic text-center">Nessuna pesata salvata.</p>';
+                updateIntegratedScore();
                 return;
             }
 
@@ -760,66 +867,23 @@
 
             const evaluation = calculateAdvancedFitnessScore(latest);
             const score = evaluation.score;
-            const computedImc = evaluation.imcCalc;
+            let scoreColor = score >= 75 ? 'text-emerald-400' : (score >= 50 ? 'text-yellow-400' : 'text-red-400');
 
-            let scoreColor = 'text-red-400';
-            if (score >= 75) scoreColor = 'text-emerald-400';
-            else if (score >= 50) scoreColor = 'text-yellow-400';
-
-            // PARTE 1: ANALISI STATO ATTUALE (Solo dati ultima pesata)
             box.innerHTML = `
                 <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-                    <div>
-                        <span class="font-bold text-emerald-400">Data: ${latest.Data || latest.data || 'Recente'}</span>
-                    </div>
+                    <div><span class="font-bold text-emerald-400">Data: ${latest.Data || latest.data || 'Recente'}</span></div>
                     <div class="text-right">
-                        <span class="text-[10px] text-slate-400 block">Forma Attuale</span>
+                        <span class="text-[10px] text-slate-400 block">Punteggio Peso</span>
                         <span class="text-xl font-black ${scoreColor}">${score} / 100</span>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
                     <div><span class="text-slate-400">Peso:</span> <b class="text-white">${weightVal} kg</b></div>
-                    <div><span class="text-slate-400">IMC (BMI):</span> <b class="text-white">${latest.IMC || latest.imc || computedImc}</b></div>
+                    <div><span class="text-slate-400">IMC (BMI):</span> <b class="text-white">${latest.IMC || latest.imc || evaluation.imcCalc}</b></div>
                     <div><span class="text-slate-400">Massa Grassa:</span> <b class="text-white">${latest.MassaGrassa || latest.massa_grassa || '-'} %</b></div>
                     <div><span class="text-slate-400">Massa Muscolare:</span> <b class="text-white">${latest.Muscoli || latest.muscoli || '-'} kg</b></div>
-                    <div><span class="text-slate-400">Acqua:</span> <b class="text-white">${latest.Acqua || latest.acqua || '-'} %</b></div>
-                    <div><span class="text-slate-400">Grasso Viscerale:</span> <b class="text-white">${latest.GrassoViscerale || latest.grasso_viscerale || '-'}</b></div>
-                    <div><span class="text-slate-400">Metab. Basale:</span> <b class="text-white">${latest.MetabolismoBasale || latest.metabolismo_basale || '-'} kcal</b></div>
                 </div>
             `;
-
-            // PARTE 2: MOTORINO DI CALCOLO NELLE SEZIONE OBIETTIVI (Con parametri Xiaomi e Profilo)
-            if (scoreBox) {
-                const visceralVal = parseFloat(latest.GrassoViscerale || latest.grasso_viscerale || 0);
-                let visceralStatus = "Normale (1-9)";
-                if (visceralVal >= 10 && visceralVal <= 14) visceralStatus = "Alto (10-14)";
-                else if (visceralVal >= 15) visceralStatus = "Molto Alto (15+)";
-
-                scoreBox.innerHTML = `
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-                        <span class="font-bold text-emerald-400">Punteggio Ragionato (Xiaomi Standards)</span>
-                        <span class="text-lg font-black ${scoreColor}">${score} / 100</span>
-                    </div>
-                    <div class="space-y-1 text-[11px] pt-1">
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">Altezza Profilo Riferimento:</span>
-                            <span class="text-white font-bold">${db.profile.height} cm</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">Grasso Viscerale (Xiaomi 1-15+):</span>
-                            <span class="text-white font-bold">${visceralVal} - ${visceralStatus}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">Massa Grassa %:</span>
-                            <span class="text-white font-bold">${latest.MassaGrassa || latest.massa_grassa || '-'}%</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">Idratazione Acqua %:</span>
-                            <span class="text-white font-bold">${latest.Acqua || latest.acqua || '-'}%</span>
-                        </div>
-                    </div>
-                `;
-            }
 
             db.scaleData.forEach(item => {
                 const div = document.createElement('div');
@@ -828,14 +892,106 @@
                     <div>
                         <span class="font-bold text-slate-200">${item.Data || item.data || 'N/D'}</span> - 
                         <span class="text-emerald-400 font-semibold">${item.Peso || item.peso || '-'} kg</span>
-                        <span class="text-[10px] text-slate-400 ml-1.5">(${item.MassaGrassa || item.massa_grassa || '-'}% MG)</span>
                     </div>
-                    <button onclick="deleteScaleData(${item.id})" class="text-slate-500 hover:text-red-400 p-1 transition-colors">
+                    <button onclick="deleteScaleData(${item.id})" class="text-slate-500 hover:text-red-400 p-1">
                         <i class="ph ph-trash text-base"></i>
                     </button>
                 `;
                 historyList.appendChild(div);
             });
+
+            updateIntegratedScore();
+        }
+
+        function renderMeasuresAnalysis() {
+            const box = document.getElementById('measuresAnalysisBox');
+            const historyList = document.getElementById('measuresHistoryList');
+            historyList.innerHTML = '';
+
+            if (!db.measuresData.length) {
+                box.innerHTML = '<p class="text-slate-500 italic text-center">Nessun dato misurazione caricato.</p>';
+                historyList.innerHTML = '<p class="text-xs text-slate-500 italic text-center">Nessuna misurazione salvata.</p>';
+                updateIntegratedScore();
+                return;
+            }
+
+            const latest = db.measuresData[0];
+            const evaluation = calculateMeasuresScore(latest);
+            const score = evaluation.score;
+            let scoreColor = score >= 75 ? 'text-emerald-400' : (score >= 50 ? 'text-yellow-400' : 'text-red-400');
+
+            box.innerHTML = `
+                <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                    <div><span class="font-bold text-emerald-400">Data: ${latest.Data || latest.data || 'Recente'}</span></div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-400 block">Punteggio Circonferenze</span>
+                        <span class="text-xl font-black ${scoreColor}">${score} / 100</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                    <div><span class="text-slate-400">Torace:</span> <b class="text-white">${latest.Torace || latest.torace || '-'} cm</b></div>
+                    <div><span class="text-slate-400">Spalle:</span> <b class="text-white">${latest.Spalle || latest.spalle || '-'} cm</b></div>
+                    <div><span class="text-slate-400">Vita:</span> <b class="text-white">${latest.Vita || latest.vita || '-'} cm</b></div>
+                    <div><span class="text-slate-400">Rapporto Vita/Alt:</span> <b class="text-white">${evaluation.whtr}</b></div>
+                    <div><span class="text-slate-400">Bicipiti Dx/Sx:</span> <b class="text-white">${latest.BicipiteDx || '-'}/${latest.BicipiteSx || '-'} cm</b></div>
+                    <div><span class="text-slate-400">Quadricipiti Dx/Sx:</span> <b class="text-white">${latest.QuadricipiteDx || '-'}/${latest.QuadricipiteSx || '-'} cm</b></div>
+                </div>
+            `;
+
+            db.measuresData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-900/60 border border-slate-700/50 rounded p-2 flex justify-between items-center text-xs';
+                div.innerHTML = `
+                    <div>
+                        <span class="font-bold text-slate-200">${item.Data || item.data || 'N/D'}</span> - 
+                        <span class="text-emerald-400 font-semibold">Vita: ${item.Vita || item.vita || '-'} cm</span>
+                    </div>
+                    <button onclick="deleteMeasuresData(${item.id})" class="text-slate-500 hover:text-red-400 p-1">
+                        <i class="ph ph-trash text-base"></i>
+                    </button>
+                `;
+                historyList.appendChild(div);
+            });
+
+            updateIntegratedScore();
+        }
+
+        // MOTORINO INTEGRATO SEZIONE 6 OBIETTIVI
+        function updateIntegratedScore() {
+            const scoreBox = document.getElementById('scoreCalculatorBox');
+            if (!scoreBox) return;
+
+            const scaleEval = db.scaleData.length ? calculateAdvancedFitnessScore(db.scaleData[0]) : { score: 0 };
+            const measEval = db.measuresData.length ? calculateMeasuresScore(db.measuresData[0]) : { score: 0 };
+
+            if (!db.scaleData.length && !db.measuresData.length) {
+                scoreBox.innerHTML = '<p class="text-slate-400 italic text-center">In attesa di dati pesata/misurazioni per il calcolo avanzato.</p>';
+                return;
+            }
+
+            const globalScore = Math.round((scaleEval.score + measEval.score) / (db.scaleData.length && db.measuresData.length ? 2 : 1));
+            let scoreColor = globalScore >= 75 ? 'text-emerald-400' : (globalScore >= 50 ? 'text-yellow-400' : 'text-red-400');
+
+            scoreBox.innerHTML = `
+                <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                    <span class="font-bold text-emerald-400">Punteggio Forma Globale</span>
+                    <span class="text-lg font-black ${scoreColor}">${globalScore} / 100</span>
+                </div>
+                <div class="space-y-1 text-[11px] pt-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Valutazione Peso & Bilancia:</span>
+                        <span class="text-white font-bold">${scaleEval.score} / 100</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Valutazione Misurazioni Antropometriche:</span>
+                        <span class="text-white font-bold">${measEval.score} / 100</span>
+                    </div>
+                    <div class="flex justify-between border-t border-slate-800 pt-1 mt-1">
+                        <span class="text-slate-400">Altezza Profilo Utilizzata:</span>
+                        <span class="text-white font-bold">${db.profile.height} cm</span>
+                    </div>
+                </div>
+            `;
         }
 
         function saveTargetSettings() {
