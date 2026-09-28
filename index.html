@@ -268,13 +268,24 @@
             </div>
         </div>
 
-        <!-- MOTORINO DI CALCOLO PUNTEGGIO GLOBALE (Bilancia + Circonferenze + Profilo) -->
+        <!-- MOTORINO DI CALCOLO PUNTEGGIO INTEGRATO E DIAGNOSI STATO ATTUALE -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
             <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
                 <i class="ph ph-calculator text-lg"></i> Motorino Calcolo Punteggio Integrato
             </h2>
-            <div id="scoreCalculatorBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-2">
+            
+            <div id="scoreCalculatorBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-3">
                 <p class="text-slate-400 italic text-center">In attesa di dati per il calcolo avanzato.</p>
+            </div>
+
+            <!-- MINI-DEFINIZIONE STRUTTURATA DELLO STATO ATTUALE -->
+            <div id="statusDiagnosisBox" class="bg-slate-900/60 border border-slate-700/50 rounded-lg p-3 text-xs space-y-2">
+                <h3 class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex items-center gap-1.5">
+                    <i class="ph ph-activity text-emerald-400"></i> Profilo Diagnostico Stato Attuale
+                </h3>
+                <div id="diagnosisContent" class="space-y-1.5 text-slate-300">
+                    <p class="text-slate-500 italic">Carica dati pesata e misurazioni per generare la valutazione sintetica.</p>
+                </div>
             </div>
         </div>
 
@@ -351,7 +362,7 @@
             </div>
         </div>
 
-        <!-- VALUTAZIONI DISTINTE STATO ATTUALE (2 BOX SEPARATI) -->
+        <!-- VALUTAZIONI DISTINTE STATO ATTUALE (2 BOX SEPARATI + LOGICA) -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-4">
             <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
                 <i class="ph ph-chart-bar text-lg"></i> Valutazione Distinta Stato Attuale
@@ -770,72 +781,85 @@
             XLSX.writeFile(workbook, `Misurazioni_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
-        // MOTORINI DI CALCOLO VALUTAZIONI (1-100)
+        // MOTORINI DI CALCOLO VALUTAZIONI (1-100) & DIAGNOSI
         function calculateAdvancedFitnessScore(latest) {
-            if (!latest) return { score: 0, imcCalc: "-" };
+            if (!latest) return { score: 0, imcCalc: "-", diagnosisWeight: "N/D" };
             let score = 0;
             const heightM = (db.profile.height || 191) / 100;
             const weight = parseFloat(latest.Peso || latest.peso || 0);
 
+            // 1. BMI/IMC (Max 25pt)
             let imc = parseFloat(latest.IMC || latest.imc || (heightM > 0 ? weight / (heightM * heightM) : 0));
-            if (imc >= 18.5 && imc <= 24.9) score += 25;
-            else if (imc >= 25.0 && imc <= 28.0) score += 18;
-            else if (imc > 0) score += 10;
+            let statusImc = "Normopeso";
+            if (imc >= 18.5 && imc <= 24.9) { score += 25; statusImc = "Normopeso Ottimale"; }
+            else if (imc >= 25.0 && imc <= 28.0) { score += 18; statusImc = "Lieve Sovrappeso/Massa Muscolare"; }
+            else if (imc > 0) { score += 10; statusImc = "Sottopeso/Oltre Soglia"; }
 
+            // 2. Grasso Viscerale (Max 25pt)
             const visceral = parseFloat(latest.GrassoViscerale || latest.grasso_viscerale || 0);
             if (visceral > 0 && visceral <= 9) score += 25;
             else if (visceral >= 10 && visceral <= 14) score += 15;
-            else score += 20;
+            else score += 10;
 
+            // 3. Massa Grassa % (Max 25pt)
             const fatPct = parseFloat(latest.MassaGrassa || latest.massa_grassa || 0);
+            let statusFat = "Magro/Definito";
             if (fatPct >= 11 && fatPct <= 18) score += 25;
-            else if (fatPct > 18 && fatPct <= 23) score += 18;
-            else score += 20;
+            else if (fatPct > 18 && fatPct <= 23) { score += 18; statusFat = "Adiposità Media"; }
+            else { score += 10; statusFat = "Adiposità Elevata"; }
 
+            // 4. Acqua % (Max 25pt)
             const waterPct = parseFloat(latest.Acqua || latest.acqua || 0);
             if (waterPct >= 55 && waterPct <= 65) score += 25;
             else if (waterPct >= 50 && waterPct < 55) score += 18;
-            else score += 20;
+            else score += 10;
 
-            return { score: Math.min(100, Math.max(1, Math.round(score))), imcCalc: imc.toFixed(1) };
+            return { 
+                score: Math.min(100, Math.max(1, Math.round(score))), 
+                imcCalc: imc.toFixed(1),
+                diagnosisWeight: `${statusImc} (${statusFat})`
+            };
         }
 
         function calculateMeasuresScore(latest) {
-            if (!latest) return { score: 0, whtr: "-", symmetryArm: "-", symmetryLeg: "-" };
+            if (!latest) return { score: 0, whtr: "-", symmetryArm: "-", symmetryLeg: "-", diagnosisMeasures: "N/D" };
             let score = 0;
             const heightCm = db.profile.height || 191;
 
-            // 1. Rapporto Vita/Altezza (Waist-to-Height Ratio - WHtR): Ottimale tra 0.42 e 0.50
+            // 1. Rapporto Vita/Altezza (WHtR - Max 35pt)
             const waist = parseFloat(latest.Vita || latest.vita || 0);
             const whtr = heightCm > 0 && waist > 0 ? (waist / heightCm) : 0;
+            let statusWaist = "Addome Magro";
             if (whtr >= 0.42 && whtr <= 0.50) score += 35;
-            else if (whtr > 0.50 && whtr <= 0.55) score += 25;
-            else if (whtr > 0) score += 15;
+            else if (whtr > 0.50 && whtr <= 0.55) { score += 25; statusWaist = "Addome Neutro/Lieve Grasso"; }
+            else if (whtr > 0) { score += 15; statusWaist = "Addome Prominente"; }
 
-            // 2. Simmetria Bicipiti (Differenza Sx/Dx <= 1 cm)
+            // 2. Simmetria Bicipiti (Max 20pt)
             const bicDx = parseFloat(latest.BicipiteDx || latest.bicipite_dx || 0);
             const bicSx = parseFloat(latest.BicipiteSx || latest.bicipite_sx || 0);
             const armDiff = Math.abs(bicDx - bicSx);
+            let statusArms = bicDx >= 38 ? "Braccia Sviluppate/Trofiche" : "Braccia Normali/Snelle";
             if (bicDx > 0 && bicSx > 0) {
                 if (armDiff <= 0.5) score += 20;
                 else if (armDiff <= 1.2) score += 15;
                 else score += 8;
             } else score += 15;
 
-            // 3. Simmetria Quadricipiti / Polpacci
+            // 3. Simmetria Quadricipiti / Polpacci (Max 20pt)
             const quadDx = parseFloat(latest.QuadricipiteDx || latest.quadricipite_dx || 0);
             const quadSx = parseFloat(latest.QuadricipiteSx || latest.quadricipite_sx || 0);
             const legDiff = Math.abs(quadDx - quadSx);
+            let statusLegs = quadDx >= 58 ? "Gambe Strutturate" : "Gambe Snelle";
             if (quadDx > 0 && quadSx > 0) {
                 if (legDiff <= 0.8) score += 20;
                 else if (legDiff <= 1.5) score += 15;
                 else score += 8;
             } else score += 15;
 
-            // 4. Struttura Spalle/Vita (Indice V-Taper: Spalle / Vita >= 1.3)
+            // 4. Proporzione Spalle/Vita (Max 25pt)
             const shoulders = parseFloat(latest.Spalle || latest.spalle || 0);
             const vTaper = waist > 0 && shoulders > 0 ? (shoulders / waist) : 0;
-            if (vTaper >= 0.55) score += 25; // Spalle intese come larghezza ossea/biacromiale
+            if (vTaper >= 0.55) score += 25;
             else if (vTaper > 0) score += 18;
             else score += 15;
 
@@ -843,7 +867,8 @@
                 score: Math.min(100, Math.max(1, Math.round(score))),
                 whtr: whtr.toFixed(2),
                 symmetryArm: armDiff.toFixed(1),
-                symmetryLeg: legDiff.toFixed(1)
+                symmetryLeg: legDiff.toFixed(1),
+                diagnosisMeasures: `${statusWaist}, ${statusArms}, ${statusLegs} (Simmetria: ${armDiff <= 0.8 ? 'Ottima' : 'Migliorabile'})`
             };
         }
 
@@ -882,6 +907,12 @@
                     <div><span class="text-slate-400">IMC (BMI):</span> <b class="text-white">${latest.IMC || latest.imc || evaluation.imcCalc}</b></div>
                     <div><span class="text-slate-400">Massa Grassa:</span> <b class="text-white">${latest.MassaGrassa || latest.massa_grassa || '-'} %</b></div>
                     <div><span class="text-slate-400">Massa Muscolare:</span> <b class="text-white">${latest.Muscoli || latest.muscoli || '-'} kg</b></div>
+                </div>
+                <div class="mt-2 p-2 bg-slate-950/60 rounded border border-slate-800 text-[10px] text-slate-400 space-y-1">
+                    <p class="font-semibold text-slate-300">Regole Assegnazione Punti (Max 100):</p>
+                    <p>• IMC (18.5-24.9): max 25pt | • Grasso Viscerale (&le;9): max 25pt</p>
+                    <p>• Massa Grassa (11-18%): max 25pt | • Idratazione Acqua (55-65%): max 25pt</p>
+                    <p class="text-emerald-400 pt-1"><b>Conclusione:</b> ${evaluation.diagnosisWeight}</p>
                 </div>
             `;
 
@@ -936,6 +967,12 @@
                     <div><span class="text-slate-400">Bicipiti Dx/Sx:</span> <b class="text-white">${latest.BicipiteDx || '-'}/${latest.BicipiteSx || '-'} cm</b></div>
                     <div><span class="text-slate-400">Quadricipiti Dx/Sx:</span> <b class="text-white">${latest.QuadricipiteDx || '-'}/${latest.QuadricipiteSx || '-'} cm</b></div>
                 </div>
+                <div class="mt-2 p-2 bg-slate-950/60 rounded border border-slate-800 text-[10px] text-slate-400 space-y-1">
+                    <p class="font-semibold text-slate-300">Regole Assegnazione Punti (Max 100):</p>
+                    <p>• WHtR Vita/Altezza (0.42-0.50): max 35pt | • Simmetria Bicipiti (&le;0.5cm): max 20pt</p>
+                    <p>• Simmetria Quadricipiti (&le;0.8cm): max 20pt | • Proporzione V-Taper Spalle/Vita: max 25pt</p>
+                    <p class="text-emerald-400 pt-1"><b>Conclusione:</b> ${evaluation.diagnosisMeasures}</p>
+                </div>
             `;
 
             db.measuresData.forEach(item => {
@@ -956,16 +993,18 @@
             updateIntegratedScore();
         }
 
-        // MOTORINO INTEGRATO SEZIONE 6 OBIETTIVI
+        // MOTORINO INTEGRATO SEZIONE 6 OBIETTIVI CON DIAGNOSI
         function updateIntegratedScore() {
             const scoreBox = document.getElementById('scoreCalculatorBox');
-            if (!scoreBox) return;
+            const diagBox = document.getElementById('diagnosisContent');
+            if (!scoreBox || !diagBox) return;
 
-            const scaleEval = db.scaleData.length ? calculateAdvancedFitnessScore(db.scaleData[0]) : { score: 0 };
-            const measEval = db.measuresData.length ? calculateMeasuresScore(db.measuresData[0]) : { score: 0 };
+            const scaleEval = db.scaleData.length ? calculateAdvancedFitnessScore(db.scaleData[0]) : { score: 0, diagnosisWeight: "Nessun dato pesata" };
+            const measEval = db.measuresData.length ? calculateMeasuresScore(db.measuresData[0]) : { score: 0, diagnosisMeasures: "Nessun dato misurazioni" };
 
             if (!db.scaleData.length && !db.measuresData.length) {
                 scoreBox.innerHTML = '<p class="text-slate-400 italic text-center">In attesa di dati pesata/misurazioni per il calcolo avanzato.</p>';
+                diagBox.innerHTML = '<p class="text-slate-500 italic">Carica dati pesata e misurazioni per generare la valutazione sintetica.</p>';
                 return;
             }
 
@@ -991,6 +1030,14 @@
                         <span class="text-white font-bold">${db.profile.height} cm</span>
                     </div>
                 </div>
+            `;
+
+            // RENDERING MINI-DEFINIZIONE STRUTTURATA STATO ATTUALE
+            diagBox.innerHTML = `
+                <ul class="space-y-1 text-[11px]">
+                    <li class="flex justify-between"><span class="text-slate-400">Stato Ponderale:</span> <b class="text-slate-200">${scaleEval.diagnosisWeight || 'N/D'}</b></li>
+                    <li class="flex justify-between"><span class="text-slate-400">Profilo Antropometrico:</span> <b class="text-slate-200">${measEval.diagnosisMeasures || 'N/D'}</b></li>
+                </ul>
             `;
         }
 
