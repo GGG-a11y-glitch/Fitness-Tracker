@@ -274,7 +274,7 @@
                 <i class="ph ph-calculator text-lg"></i> Motorino Calcolo Punteggio
             </h2>
             <div id="scoreCalculatorBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-2">
-                <p class="text-slate-400 italic text-center">In attesa di definizione della logica di calcolo.</p>
+                <p class="text-slate-400 italic text-center">In attesa di dati pesata per il calcolo avanzato.</p>
             </div>
         </div>
 
@@ -311,7 +311,7 @@
                 </button>
             </div>
 
-            <!-- Score e Ultima Pesata -->
+            <!-- Analisi Stato Attuale (Sola Ultima Pesata) -->
             <div class="space-y-2">
                 <label class="block text-xs text-slate-400">Analisi Stato Attuale (Ultima Pesata)</label>
                 <div id="scaleAnalysisBox" class="bg-slate-900/80 border border-slate-700/60 rounded-lg p-3 text-xs space-y-3">
@@ -369,7 +369,7 @@
             const birthVal = document.getElementById('profileBirthDate').value;
             if (!birthVal) {
                 document.getElementById('profileAge').value = '-';
-                return;
+                return 30; // fallback standard
             }
             const birthDate = new Date(birthVal);
             const today = new Date();
@@ -379,6 +379,7 @@
                 age--;
             }
             document.getElementById('profileAge').value = `${age} anni`;
+            return age;
         }
 
         function saveUserProfile() {
@@ -390,6 +391,7 @@
             };
             localStorage.setItem('pwa_user_profile', JSON.stringify(db.profile));
             alert("Profilo aggiornato con successo!");
+            renderScaleAnalysis(); // Ricalcola con i nuovi dati profilo
         }
 
         // NAVIGAZIONE MENU
@@ -633,7 +635,7 @@
                 }));
 
                 db.scaleData = [...incoming, ...db.scaleData];
-                db.scaleData.sort((a, b) => new Date(b.Data || b.data || 0) - new Date(a.Data || a.data || 0));
+                db.scaleData.sort((a, b) => new Date(b.Data || b.data || 0) - new Date(b.Data || b.data || 0));
 
                 localStorage.setItem('pwa_scaledata', JSON.stringify(db.scaleData));
                 fileInput.value = '';
@@ -668,37 +670,77 @@
             XLSX.writeFile(workbook, `Xiaomi_Scale_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
-        function calculateFitnessScore(latest) {
-            if (!latest) return 0;
+        // MOTORINO DI CALCOLO RAGIONATO (Xiaomi Mi Scale 2 Standards + Profilo + Analisi)
+        function calculateAdvancedFitnessScore(latest) {
+            if (!latest) return { score: 0, details: [] };
+
             let score = 0;
+            let breakdown = [];
 
-            const imc = parseFloat(latest.IMC || latest.imc || 0);
-            if (imc >= 18.5 && imc <= 24.9) score += 25;
-            else if (imc >= 25.0 && imc <= 27.5) score += 18;
-            else if (imc > 0) score += 10;
+            const heightCm = db.profile.height || 191;
+            const heightM = heightCm / 100;
+            const weight = parseFloat(latest.Peso || latest.peso || 0);
 
-            const fatPct = parseFloat(latest.MassaGrassa || latest.massa_grassa || 0);
-            if (fatPct >= 10 && fatPct <= 18) score += 25;
-            else if (fatPct > 18 && fatPct <= 23) score += 18;
-            else if (fatPct > 0) score += 10;
+            // 1. Valutazione IMC / BMI basata su altezza profilo
+            let imc = parseFloat(latest.IMC || latest.imc || 0);
+            if (!imc && heightM > 0 && weight > 0) {
+                imc = weight / (heightM * heightM);
+            }
 
-            const weight = parseFloat(latest.Peso || latest.peso || 1);
-            const muscle = parseFloat(latest.Muscoli || latest.muscoli || 0);
-            const musclePct = (muscle / weight) * 100;
-            if (musclePct >= 75) score += 25;
-            else if (musclePct >= 65) score += 18;
-            else if (musclePct > 0) score += 10;
+            if (imc >= 18.5 && imc <= 24.9) {
+                score += 25;
+                breakdown.text = "BMI ottimale";
+            } else if (imc >= 25.0 && imc <= 28.0) {
+                score += 18;
+            } else if (imc > 0) {
+                score += 10;
+            }
 
+            // 2. Valutazione Grasso Viscerale (Standard Xiaomi Mi Scale 2: 1-9 Ottimale/Normale, 10-14 Alto, 15+ Molto Alto)
             const visceral = parseFloat(latest.GrassoViscerale || latest.grasso_viscerale || 0);
-            if (visceral > 0 && visceral <= 6) score += 25;
-            else if (visceral > 6 && visceral <= 9) score += 18;
-            else if (visceral > 9) score += 8;
+            if (visceral > 0 && visceral <= 9) {
+                score += 25;
+            } else if (visceral >= 10 && visceral <= 14) {
+                score += 15;
+            } else if (visceral >= 15) {
+                score += 5;
+            } else {
+                score += 20; // Default se assente
+            }
 
-            return Math.min(100, Math.max(1, Math.round(score)));
+            // 3. Valutazione Massa Grassa % (Standard Uomo Atletico/Normale: 11-20%)
+            const fatPct = parseFloat(latest.MassaGrassa || latest.massa_grassa || 0);
+            if (fatPct >= 11 && fatPct <= 18) {
+                score += 25;
+            } else if (fatPct > 18 && fatPct <= 23) {
+                score += 18;
+            } else if (fatPct > 0 && fatPct < 11) {
+                score += 20; // Magro ma ok
+            } else if (fatPct > 23) {
+                score += 10;
+            } else {
+                score += 20;
+            }
+
+            // 4. Valutazione Idratazione % (Standard Xiaomi: 55%-65% per uomo)
+            const waterPct = parseFloat(latest.Acqua || latest.acqua || 0);
+            if (waterPct >= 55 && waterPct <= 65) {
+                score += 25;
+            } else if (waterPct >= 50 && waterPct < 55) {
+                score += 18;
+            } else if (waterPct > 0) {
+                score += 10;
+            } else {
+                score += 20;
+            }
+
+            const finalScore = Math.min(100, Math.max(1, Math.round(score)));
+            return { score: finalScore, imcCalc: imc.toFixed(1) };
         }
 
         function renderScaleAnalysis() {
             const box = document.getElementById('scaleAnalysisBox');
+            const scoreBox = document.getElementById('scoreCalculatorBox');
             const homeDisplay = document.getElementById('homeWeightDisplay');
             const historyList = document.getElementById('scaleHistoryList');
 
@@ -706,20 +748,25 @@
 
             if (!db.scaleData || db.scaleData.length === 0) {
                 box.innerHTML = '<p class="text-slate-500 italic text-center">Nessun dato pesata caricato.</p>';
+                if (scoreBox) scoreBox.innerHTML = '<p class="text-slate-500 italic text-center">Nessun dato pesata caricato.</p>';
                 homeDisplay.textContent = '- kg';
                 historyList.innerHTML = '<p class="text-xs text-slate-500 italic text-center">Nessuna pesata salvata.</p>';
                 return;
             }
 
             const latest = db.scaleData[0];
-            homeDisplay.textContent = `${latest.Peso || latest.peso || '-'} kg`;
+            const weightVal = latest.Peso || latest.peso || '-';
+            homeDisplay.textContent = `${weightVal} kg`;
 
-            const score = calculateFitnessScore(latest);
+            const evaluation = calculateAdvancedFitnessScore(latest);
+            const score = evaluation.score;
+            const computedImc = evaluation.imcCalc;
 
             let scoreColor = 'text-red-400';
             if (score >= 75) scoreColor = 'text-emerald-400';
             else if (score >= 50) scoreColor = 'text-yellow-400';
 
+            // PARTE 1: ANALISI STATO ATTUALE (Solo dati ultima pesata)
             box.innerHTML = `
                 <div class="flex justify-between items-center pb-2 border-b border-slate-800">
                     <div>
@@ -731,8 +778,8 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
-                    <div><span class="text-slate-400">Peso:</span> <b class="text-white">${latest.Peso || latest.peso || '-'} kg</b></div>
-                    <div><span class="text-slate-400">IMC (BMI):</span> <b class="text-white">${latest.IMC || latest.imc || '-'}</b></div>
+                    <div><span class="text-slate-400">Peso:</span> <b class="text-white">${weightVal} kg</b></div>
+                    <div><span class="text-slate-400">IMC (BMI):</span> <b class="text-white">${latest.IMC || latest.imc || computedImc}</b></div>
                     <div><span class="text-slate-400">Massa Grassa:</span> <b class="text-white">${latest.MassaGrassa || latest.massa_grassa || '-'} %</b></div>
                     <div><span class="text-slate-400">Massa Muscolare:</span> <b class="text-white">${latest.Muscoli || latest.muscoli || '-'} kg</b></div>
                     <div><span class="text-slate-400">Acqua:</span> <b class="text-white">${latest.Acqua || latest.acqua || '-'} %</b></div>
@@ -740,6 +787,39 @@
                     <div><span class="text-slate-400">Metab. Basale:</span> <b class="text-white">${latest.MetabolismoBasale || latest.metabolismo_basale || '-'} kcal</b></div>
                 </div>
             `;
+
+            // PARTE 2: MOTORINO DI CALCOLO NELLE SEZIONE OBIETTIVI (Con parametri Xiaomi e Profilo)
+            if (scoreBox) {
+                const visceralVal = parseFloat(latest.GrassoViscerale || latest.grasso_viscerale || 0);
+                let visceralStatus = "Normale (1-9)";
+                if (visceralVal >= 10 && visceralVal <= 14) visceralStatus = "Alto (10-14)";
+                else if (visceralVal >= 15) visceralStatus = "Molto Alto (15+)";
+
+                scoreBox.innerHTML = `
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                        <span class="font-bold text-emerald-400">Punteggio Ragionato (Xiaomi Standards)</span>
+                        <span class="text-lg font-black ${scoreColor}">${score} / 100</span>
+                    </div>
+                    <div class="space-y-1 text-[11px] pt-1">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Altezza Profilo Riferimento:</span>
+                            <span class="text-white font-bold">${db.profile.height} cm</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Grasso Viscerale (Xiaomi 1-15+):</span>
+                            <span class="text-white font-bold">${visceralVal} - ${visceralStatus}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Massa Grassa %:</span>
+                            <span class="text-white font-bold">${latest.MassaGrassa || latest.massa_grassa || '-'}%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Idratazione Acqua %:</span>
+                            <span class="text-white font-bold">${latest.Acqua || latest.acqua || '-'}%</span>
+                        </div>
+                    </div>
+                `;
+            }
 
             db.scaleData.forEach(item => {
                 const div = document.createElement('div');
