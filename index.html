@@ -2,148 +2,300 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fitness & Tracker PWA Pro</title>
-    <!-- Tailwind CSS CDN -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fitness Tracker PWA</title>
+    
+    <!-- Meta tag WebApp / PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="data:application/manifest+json;utf8,{
+        %22name%22:%22Fitness%20Tracker%22,
+        %22short_name%22:%22FitnessPWA%22,
+        %22start_url%22:%22./%22,
+        %22display%22:%22standalone%22,
+        %22background_color%22:%22%230f172a%22,
+        %22theme_color%22:%22%230f172a%22
+    }">
+
+    <!-- CDN Tailwind CSS, SheetJS e Phosphor Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS per Import/Export Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <style>
         body {
             background-color: #0f172a;
             color: #f8fafc;
             font-family: system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .page-section {
+            display: none;
+        }
+        .page-section.active {
+            display: block;
         }
     </style>
 </head>
-<body class="p-4 max-w-xl mx-auto pb-12">
+<body class="p-4 max-w-xl mx-auto pb-12 relative min-h-screen">
 
-    <!-- HEADER / DASHBOARD CONTATORI -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-4 shadow-lg">
-        <div class="flex justify-between items-center mb-3">
-            <h1 class="text-xl font-bold text-emerald-400 flex items-center gap-2">
-                <i class="ph ph-barbell text-2xl"></i> Fitness Tracker
-            </h1>
-            <span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded-md font-mono" id="activeSchedaBadge">
-                Scheda: Nessuna
-            </span>
+    <!-- BARRA DI NAVIGAZIONE SUPERIORE CON HAMBURGER MENU -->
+    <header class="flex justify-between items-center bg-slate-800 border border-slate-700 rounded-xl p-3.5 mb-4 shadow-lg sticky top-2 z-30">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="showSection('home')">
+            <i class="ph ph-barbell text-2xl text-emerald-400"></i>
+            <span class="font-bold text-base text-white tracking-wide">Fitness PWA</span>
         </div>
-        
-        <div class="grid grid-cols-2 gap-3">
-            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 text-center">
-                <p class="text-xs text-slate-400 mb-1">Giorni senza Allenamento</p>
-                <p class="text-2xl font-black text-emerald-400" id="daysSinceLastWorkout">-</p>
-            </div>
-            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 text-center">
-                <p class="text-xs text-slate-400 mb-1">Allenamenti Totali</p>
-                <p class="text-2xl font-black text-blue-400" id="totalWorkoutsCount">0</p>
-            </div>
-        </div>
-    </div>
+        <button onclick="toggleMenu()" class="p-2 text-slate-300 hover:text-emerald-400 text-2xl focus:outline-none">
+            <i class="ph ph-list"></i>
+        </button>
+    </header>
 
-    <!-- 1. REGISTRAZIONE RAPIDA ALLENAMENTO -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-4 shadow-lg">
-        <h2 class="text-base font-semibold text-emerald-400 mb-3 flex items-center gap-2">
-            <i class="ph ph-plus-circle text-lg"></i> Nuova Registrazione Allenamento
-        </h2>
-        <div class="space-y-3">
+    <!-- SIDEBAR HAMBURGER MENU (A SCOMPARSA) -->
+    <div id="sidebarOverlay" onclick="toggleMenu()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 hidden transition-opacity"></div>
+    <aside id="sidebar" class="fixed top-0 right-0 w-64 h-full bg-slate-900 border-l border-slate-800 p-5 z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
+        <div>
+            <div class="flex justify-between items-center pb-4 border-b border-slate-800 mb-4">
+                <span class="font-bold text-emerald-400 flex items-center gap-2">
+                    <i class="ph ph-user-circle text-xl"></i> Menu App
+                </span>
+                <button onclick="toggleMenu()" class="text-slate-400 hover:text-white text-xl">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <button onclick="navigateTo('home')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
+                    <i class="ph ph-house text-emerald-400 text-lg"></i> Homepage
+                </button>
+                <button onclick="navigateTo('registra')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
+                    <i class="ph ph-plus-circle text-emerald-400 text-lg"></i> Nuova Registrazione
+                </button>
+                <button onclick="navigateTo('repository')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
+                    <i class="ph ph-folders text-emerald-400 text-lg"></i> Repository Schede
+                </button>
+                <button onclick="navigateTo('storico')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
+                    <i class="ph ph-clock-counter-clockwise text-emerald-400 text-lg"></i> Storico Allenamenti
+                </button>
+                <button onclick="navigateTo('obiettivi')" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center gap-3 text-sm font-medium">
+                    <i class="ph ph-target text-emerald-400 text-lg"></i> Obiettivi e Peso
+                </button>
+            </nav>
+        </div>
+        <div class="pt-4 border-t border-slate-800 text-center">
+            <span class="text-[10px] text-slate-500 font-mono">PWA Status: Ready / Offline</span>
+        </div>
+    </aside>
+
+    <!-- SEZIONE 1: HOMEPAGE (DASHBOARD RECAP) -->
+    <section id="sec-home" class="page-section active space-y-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-semibold text-emerald-400">Riepilogo Attività</h2>
+                <span class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded" id="homeActiveBadge">Scheda: -</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 text-center">
+                    <p class="text-[11px] text-slate-400 mb-0.5">Giorni Inattività</p>
+                    <p class="text-2xl font-black text-emerald-400" id="daysSinceLastWorkout">-</p>
+                </div>
+                <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 text-center">
+                    <p class="text-[11px] text-slate-400 mb-0.5">Sessioni Totali</p>
+                    <p class="text-2xl font-black text-blue-400" id="totalWorkoutsCount">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg flex justify-between items-center">
+            <div>
+                <p class="text-xs text-slate-400">Ultimo Peso Registrato</p>
+                <p class="text-xl font-bold text-white" id="homeWeightDisplay">- kg</p>
+            </div>
+            <button onclick="navigateTo('obiettivi')" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg">
+                Aggiorna
+            </button>
+        </div>
+
+        <div class="space-y-2">
+            <button onclick="navigateTo('registra')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 shadow-lg">
+                <i class="ph ph-plus-circle text-lg"></i> Nuova Registrazione Allenamento
+            </button>
+            <button onclick="navigateTo('repository')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2.5 rounded-xl text-xs border border-slate-700 transition-colors flex items-center justify-center gap-2">
+                <i class="ph ph-folders text-base"></i> Gestisci Repository Schede
+            </button>
+        </div>
+    </section>
+
+    <!-- SEZIONE 2: REGISTRAZIONE ALLENAMENTO -->
+    <section id="sec-registra" class="page-section">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
+            <h2 class="text-base font-semibold text-emerald-400 mb-3 flex items-center gap-2">
+                <i class="ph ph-plus-circle text-lg"></i> Registra Allenamento
+            </h2>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Data</label>
+                        <input type="date" id="logDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Versione Scheda</label>
+                        <select id="logSchedaSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option value="">Seleziona...</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Dettagli / Note Sessione</label>
+                    <input type="text" id="logDetails" placeholder="Es. Giorno A - Panca 4x8 @80kg" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <button onclick="addWorkoutLog()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
+                    <i class="ph ph-check-circle text-lg"></i> Salva Allenamento
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEZIONE 3: REPOSITORY SCHEDE -->
+    <section id="sec-repository" class="page-section">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
+                    <i class="ph ph-folders text-lg"></i> Repository Schede
+                </h2>
+                <button onclick="downloadExcelTemplate()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1">
+                    <i class="ph ph-download-simple"></i> Template .xlsx
+                </button>
+            </div>
+
+            <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/60 space-y-2">
+                <input type="text" id="schedaVersionName" placeholder="Nome versione (es. Scheda Ipertrofia 2026)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600">
+                <button onclick="uploadSchedaToRepository()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1">
+                    <i class="ph ph-upload-simple"></i> Aggiungi a Repository
+                </button>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block text-xs text-slate-400 mb-1">Schede Salvate</label>
+                <div id="repositoryList" class="space-y-1.5"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEZIONE 4: STORICO REGISTRAZIONI -->
+    <section id="sec-storico" class="page-section">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
+                    <i class="ph ph-clock-counter-clockwise text-lg"></i> Storico Registrazioni
+                </h2>
+                <button onclick="exportWorkoutsToExcel()" class="text-xs bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-3 py-1 rounded-md transition-colors flex items-center gap-1">
+                    <i class="ph ph-file-xls text-sm"></i> Esporta XLSX
+                </button>
+            </div>
+            <div id="historyList" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+        </div>
+    </section>
+
+    <!-- SEZIONE 5: OBIETTIVI E TRACCIAMENTO PESO -->
+    <section id="sec-obiettivi" class="page-section space-y-4">
+        <!-- Scheda Obiettivo -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
+            <h2 class="text-base font-semibold text-emerald-400 mb-3 flex items-center gap-2">
+                <i class="ph ph-target text-lg"></i> Obiettivi Fitness
+            </h2>
+            <div class="space-y-2">
+                <textarea id="targetGoalText" placeholder="Es. Raggiungere 80kg, aumentare panca piana a 100kg..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500 h-20"></textarea>
+                <button onclick="saveGoal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1.5 rounded-lg text-xs transition-colors">
+                    Salva Obiettivo
+                </button>
+            </div>
+        </div>
+
+        <!-- Tracciamento Peso Corporeo -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg space-y-3">
+            <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
+                <i class="ph ph-scales text-lg"></i> Registro Peso Corporeo
+            </h2>
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Data</label>
-                    <input type="date" id="logDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <input type="date" id="weightDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Versione Scheda</label>
-                    <select id="logSchedaSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                        <option value="">Seleziona...</option>
-                    </select>
+                    <label class="block text-xs text-slate-400 mb-1">Peso (kg)</label>
+                    <input type="number" step="0.1" id="weightVal" placeholder="Es. 78.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
                 </div>
             </div>
-            <div>
-                <label class="block text-xs text-slate-400 mb-1">Dettagli / Note Sessione</label>
-                <input type="text" id="logDetails" placeholder="Es. Giorno A - Panca 4x8 @80kg, Squat 3x10" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-            </div>
-            <button onclick="addWorkoutLog()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
-                <i class="ph ph-check-circle text-lg"></i> Salva Registrazione
+            <button onclick="addWeightLog()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs transition-colors">
+                Registra Peso
             </button>
-        </div>
-    </div>
 
-    <!-- 2. REPOSITORY SCHEDE (ESCLUSIVAMENTE REGISTRAZIONE E GESTIONE) -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-4 shadow-lg">
-        <div class="flex justify-between items-center mb-3">
-            <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
-                <i class="ph ph-folders text-lg"></i> Repository Schede
-            </h2>
-            <button onclick="downloadExcelTemplate()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1">
-                <i class="ph ph-download-simple"></i> Template .xlsx
-            </button>
-        </div>
-
-        <!-- Caricamento Nuova Scheda -->
-        <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/60 mb-3 space-y-2">
-            <input type="text" id="schedaVersionName" placeholder="Nome versione (es. Scheda Ipertrofia 2026)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600">
-            <button onclick="uploadSchedaToRepository()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1">
-                <i class="ph ph-upload-simple"></i> Aggiungi a Repository
-            </button>
-        </div>
-
-        <!-- Elenco Schede Salvate (File + Tasto Download + Tasto Cancella) -->
-        <div class="space-y-1.5">
-            <label class="block text-xs text-slate-400 mb-1">Schede in Repository</label>
-            <div id="repositoryList" class="space-y-1.5">
-                <!-- Popolato via JS -->
+            <div class="pt-2 border-t border-slate-700/60">
+                <label class="block text-xs text-slate-400 mb-2">Storico Peso</label>
+                <div id="weightHistoryList" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- 3. STORICO ALLENAMENTI ED ESPORTAZIONE -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
-        <div class="flex justify-between items-center mb-3">
-            <h2 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
-                <i class="ph ph-clock-counter-clockwise text-lg"></i> Storico Registrazioni
-            </h2>
-            <button onclick="exportWorkoutsToExcel()" class="text-xs bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-3 py-1 rounded-md transition-colors flex items-center gap-1">
-                <i class="ph ph-file-xls text-sm"></i> Esporta XLSX
-            </button>
-        </div>
-
-        <div id="historyList" class="space-y-2 max-h-80 overflow-y-auto pr-1">
-            <!-- Popolato via JS -->
-        </div>
-    </div>
-
+    <!-- SCRIPT APPLICAZIONE -->
     <script>
-        // Inizializzazione Database Locale
+        // Database Locale
         let db = {
             repository: JSON.parse(localStorage.getItem('pwa_repository')) || {},
             activeSchedaKey: localStorage.getItem('pwa_active_scheda') || null,
-            workouts: JSON.parse(localStorage.getItem('pwa_workouts')) || []
+            workouts: JSON.parse(localStorage.getItem('pwa_workouts')) || [],
+            weights: JSON.parse(localStorage.getItem('pwa_weights')) || [],
+            goal: localStorage.getItem('pwa_goal') || ''
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('logDate').value = today;
+            document.getElementById('weightDate').value = today;
             
+            document.getElementById('targetGoalText').value = db.goal;
+
             renderRepository();
             renderWorkouts();
+            renderWeights();
             updateDashboardCounters();
         });
 
-        // CARICAMENTO SCHEDA IN REPOSITORY
+        // GESTIONE NAVIGAZIONE & SIDEBAR HAMBURGER
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isHidden = sidebar.classList.contains('translate-x-full');
+
+            if (isHidden) {
+                sidebar.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function navigateTo(sectionId) {
+            toggleMenu();
+            showSection(sectionId);
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            const target = document.getElementById(`sec-${sectionId}`);
+            if (target) target.classList.add('active');
+        }
+
+        // REPOSITORY SCHEDE
         function uploadSchedaToRepository() {
             const versionName = document.getElementById('schedaVersionName').value.trim();
             const fileInput = document.getElementById('excelFileInput');
             const file = fileInput.files[0];
 
-            if (!versionName) {
-                alert("Inserisci un nome per la versione della scheda!");
-                return;
-            }
-            if (!file) {
-                alert("Seleziona un file Excel (.xlsx / .csv)!");
+            if (!versionName || !file) {
+                alert("Compila il nome della versione e seleziona un file Excel!");
                 return;
             }
 
@@ -168,11 +320,10 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // RENDERING LISTA REPOSITORY E SELETTORI
         function renderRepository() {
             const listContainer = document.getElementById('repositoryList');
             const selectLog = document.getElementById('logSchedaSelect');
-            const badge = document.getElementById('activeSchedaBadge');
+            const badge = document.getElementById('homeActiveBadge');
 
             listContainer.innerHTML = '';
             selectLog.innerHTML = '<option value="">Nessuna / Allenamento Libero</option>';
@@ -180,7 +331,7 @@
             const keys = Object.keys(db.repository);
 
             if (keys.length === 0) {
-                listContainer.innerHTML = '<p class="text-xs text-slate-500 italic py-1">Nessuna scheda salvata in repository.</p>';
+                listContainer.innerHTML = '<p class="text-xs text-slate-500 italic">Nessuna scheda presente.</p>';
                 badge.textContent = "Scheda: Nessuna";
                 return;
             }
@@ -193,14 +344,12 @@
             badge.textContent = `Scheda: ${db.activeSchedaKey}`;
 
             keys.forEach(key => {
-                // Opzione per il form di registrazione
                 const opt = document.createElement('option');
                 opt.value = key;
                 opt.textContent = key;
                 if (key === db.activeSchedaKey) opt.selected = true;
                 selectLog.appendChild(opt);
 
-                // Elemento lista repository
                 const item = document.createElement('div');
                 item.className = `p-2 rounded-lg border text-xs flex justify-between items-center ${key === db.activeSchedaKey ? 'bg-slate-900 border-emerald-500/80 text-emerald-400' : 'bg-slate-900/60 border-slate-700/60 text-slate-300'}`;
                 
@@ -210,10 +359,10 @@
                         <span class="font-medium truncate">${key}</span>
                     </div>
                     <div class="flex items-center gap-1">
-                        <button onclick="downloadScheda('${key}')" title="Download file Excel" class="p-1 hover:text-blue-400 text-slate-400 transition-colors">
+                        <button onclick="downloadScheda('${key}')" class="p-1 hover:text-blue-400 text-slate-400">
                             <i class="ph ph-download-simple text-base"></i>
                         </button>
-                        <button onclick="deleteScheda('${key}')" title="Elimina scheda" class="p-1 hover:text-red-400 text-slate-400 transition-colors">
+                        <button onclick="deleteScheda('${key}')" class="p-1 hover:text-red-400 text-slate-400">
                             <i class="ph ph-trash text-base"></i>
                         </button>
                     </div>
@@ -230,38 +379,33 @@
 
         function downloadScheda(key) {
             if (!db.repository[key]) return;
-            const data = db.repository[key];
-            const worksheet = XLSX.utils.json_to_sheet(data);
+            const worksheet = XLSX.utils.json_to_sheet(db.repository[key]);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Scheda");
             XLSX.writeFile(workbook, `${key.replace(/\s+/g, '_')}.xlsx`);
         }
 
         function deleteScheda(key) {
-            if (!confirm(`Vuoi eliminare la scheda "${key}" dalla repository?`)) return;
-
+            if (!confirm(`Vuoi eliminare la scheda "${key}"?`)) return;
             delete db.repository[key];
             const keys = Object.keys(db.repository);
             db.activeSchedaKey = keys.length > 0 ? keys[0] : null;
 
             localStorage.setItem('pwa_repository', JSON.stringify(db.repository));
-            if (db.activeSchedaKey) {
-                localStorage.setItem('pwa_active_scheda', db.activeSchedaKey);
-            } else {
-                localStorage.removeItem('pwa_active_scheda');
-            }
+            if (db.activeSchedaKey) localStorage.setItem('pwa_active_scheda', db.activeSchedaKey);
+            else localStorage.removeItem('pwa_active_scheda');
 
             renderRepository();
         }
 
-        // REGISTRAZIONE E STORICO ALLENAMENTI
+        // WORKOUT LOGS
         function addWorkoutLog() {
             const date = document.getElementById('logDate').value;
             const scheda = document.getElementById('logSchedaSelect').value || 'Generica';
             const details = document.getElementById('logDetails').value.trim();
 
             if (!date) {
-                alert("Seleziona una data per la registrazione!");
+                alert("Seleziona una data!");
                 return;
             }
 
@@ -273,16 +417,16 @@
             });
 
             db.workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
-
             localStorage.setItem('pwa_workouts', JSON.stringify(db.workouts));
             document.getElementById('logDetails').value = '';
 
             renderWorkouts();
             updateDashboardCounters();
+            showSection('home');
         }
 
         function deleteWorkoutLog(id) {
-            if (!confirm("Vuoi eliminare questa registrazione dallo storico?")) return;
+            if (!confirm("Vuoi eliminare la registrazione?")) return;
             db.workouts = db.workouts.filter(w => w.id !== id);
             localStorage.setItem('pwa_workouts', JSON.stringify(db.workouts));
             renderWorkouts();
@@ -294,7 +438,7 @@
             list.innerHTML = '';
 
             if (db.workouts.length === 0) {
-                list.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Nessun allenamento ancora registrato.</p>';
+                list.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Nessun allenamento registrato.</p>';
                 return;
             }
 
@@ -309,7 +453,7 @@
                         </div>
                         <p class="text-slate-300">${w.details}</p>
                     </div>
-                    <button onclick="deleteWorkoutLog(${w.id})" title="Elimina registrazione" class="text-slate-500 hover:text-red-400 p-1 transition-colors">
+                    <button onclick="deleteWorkoutLog(${w.id})" class="text-slate-500 hover:text-red-400 p-1">
                         <i class="ph ph-trash text-base"></i>
                     </button>
                 `;
@@ -317,7 +461,67 @@
             });
         }
 
-        // CONTATORI E TEMPLATE EXCEL
+        // TRACCIAMENTO PESO E OBIETTIVI
+        function saveGoal() {
+            const txt = document.getElementById('targetGoalText').value;
+            db.goal = txt;
+            localStorage.setItem('pwa_goal', txt);
+            alert("Obiettivo salvato!");
+        }
+
+        function addWeightLog() {
+            const date = document.getElementById('weightDate').value;
+            const weight = parseFloat(document.getElementById('weightVal').value);
+
+            if (!date || isNaN(weight)) {
+                alert("Inserisci data e valore di peso valido!");
+                return;
+            }
+
+            db.weights.unshift({ id: Date.now(), date, weight });
+            db.weights.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            localStorage.setItem('pwa_weights', JSON.stringify(db.weights));
+            document.getElementById('weightVal').value = '';
+
+            renderWeights();
+        }
+
+        function deleteWeightLog(id) {
+            if (!confirm("Eliminare questa misurazione?")) return;
+            db.weights = db.weights.filter(w => w.id !== id);
+            localStorage.setItem('pwa_weights', JSON.stringify(db.weights));
+            renderWeights();
+        }
+
+        function renderWeights() {
+            const list = document.getElementById('weightHistoryList');
+            const homeDisplay = document.getElementById('homeWeightDisplay');
+            list.innerHTML = '';
+
+            if (db.weights.length === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-500 italic">Nessun peso registrato.</p>';
+                homeDisplay.textContent = '- kg';
+                return;
+            }
+
+            homeDisplay.textContent = `${db.weights[0].weight} kg`;
+
+            db.weights.forEach(w => {
+                const item = document.createElement('div');
+                item.className = 'bg-slate-900/60 border border-slate-700/60 rounded-lg p-2 flex justify-between items-center text-xs';
+                item.innerHTML = `
+                    <span class="text-slate-400">${w.date}</span>
+                    <span class="font-bold text-white">${w.weight} kg</span>
+                    <button onclick="deleteWeightLog(${w.id})" class="text-slate-500 hover:text-red-400 p-0.5">
+                        <i class="ph ph-trash text-sm"></i>
+                    </button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // CONTATORI E UTILITIES
         function updateDashboardCounters() {
             document.getElementById('totalWorkoutsCount').textContent = db.workouts.length;
 
@@ -332,9 +536,7 @@
             latestDate.setHours(0,0,0,0);
             today.setHours(0,0,0,0);
 
-            const diffTime = today - latestDate;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
+            const diffDays = Math.floor((today - latestDate) / (1000 * 60 * 60 * 24));
             daysElem.textContent = diffDays < 0 ? 0 : diffDays;
         }
 
@@ -351,7 +553,7 @@
 
         function exportWorkoutsToExcel() {
             if (db.workouts.length === 0) {
-                alert("Nessun dato da esportare nello storico!");
+                alert("Nessun dato da esportare!");
                 return;
             }
             const exportData = db.workouts.map(w => ({
